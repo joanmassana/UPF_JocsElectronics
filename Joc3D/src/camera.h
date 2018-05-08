@@ -9,6 +9,7 @@
 
 #include "framework.h"
 
+
 class Camera
 {
 public:
