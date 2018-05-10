@@ -67,6 +67,8 @@ void Airplane::applyLookAt(Camera * camera)
 
 void Airplane::update()
 {
+
 	model.translate(0,0, -speed);
+	Camera::current->lookAt(model*Vector3(0, 1.5, 30), model*Vector3(0, 0, -5), model.rotateVector(Vector3(0, 1, 0)));
 
 }
