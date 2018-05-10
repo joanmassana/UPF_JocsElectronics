@@ -11,8 +11,12 @@
 
 //some globals
 Mesh* mesh = NULL;
+Mesh* mesh2 = NULL;
 Texture* texture = NULL;
+Texture* texture2 = NULL;
 Shader* shader = NULL;
+Shader* shader2 = NULL;
+
 float angle = 0;
 
 Airplane* bomber = new Airplane("Heinkel");
@@ -44,13 +48,20 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 
 	//create a plane mesh
 	mesh = Mesh::Load(bomber->mesh_name.c_str());
+	bomber->model.translate(0, 30, 0);
+	mesh2 = Mesh::Load("data/assets/island/island.ASE");
+
 
 	//load one texturek
 	texture = new Texture();
  	texture->load(bomber->texture_name.c_str());
 
+	texture2 = new Texture();
+	texture2->load("data/assets/island/island_color_luz.tga");
+
 	// example of shader loading
 	shader = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
+	shader2 = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
 
 	//hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
@@ -132,6 +143,8 @@ void Game::update(double seconds_elapsed)
 	if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) camera->move(Vector3(-1.0f,0.0f, 0.0f) * speed);
 	if (Input::wasKeyPressed(SDL_SCANCODE_C)) {
 		cout << "This should change camera" << endl;
+		Vector3 up = bomber->model.rotateVector(Vector3(0, 1, 0));
+		camera->lookAt(bomber->model*Vector3(0,1.5,30), bomber->model*Vector3(0,0,-5),up);
 		//camera->lookAt(Vector3(bomber->model), Vector3(20.f, 20.f, 20.f), Vector3(0.f, 1.f, 0.f));
 	}
 

@@ -68,4 +68,5 @@ void Airplane::applyLookAt(Camera * camera)
 void Airplane::update()
 {
 	model.translate(0,0,-speed);
+
 }
