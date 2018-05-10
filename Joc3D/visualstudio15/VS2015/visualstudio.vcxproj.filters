@@ -58,6 +58,7 @@
     <ClCompile Include="..\..\src\input.cpp">
       <Filter>utils</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\entity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\camera.h" />
@@ -113,6 +114,7 @@
     <ClInclude Include="..\..\src\input.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\entity.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="extra">

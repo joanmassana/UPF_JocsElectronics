@@ -7,6 +7,8 @@
 #include "input.h"
 #include "entity.h"
 
+#include <iostream>
+#include <vector>
 #include <cmath>
 
 //some globals
@@ -14,6 +16,11 @@ Mesh* mesh = NULL;
 Texture* texture = NULL;
 Shader* shader = NULL;
 float angle = 0;
+
+//Vector de entities
+std::vector<Entity*> entities;
+
+Airplane* bomber = new Airplane("b1");
 
 Game* Game::instance = NULL;
 
@@ -41,22 +48,25 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	camera->setPerspective(70.f,window_width/(float)window_height,0.1f,10000.f); //set the projection, we want to be perspective
 
 	//create a plane mesh
-	mesh = Mesh::Load(Entity::mesh_name);
+	//mesh = Mesh::Load(bomber->mesh_name.c_str());
+	
 
-	//load one texturek
-	texture = new Texture();
- 	texture->load(texture_name);
+	//load one texture
+	/*texture = new Texture();
+ 	texture->load("data/assets/bomber/bomber_axis.tga");*/
 
 	// example of shader loading
-	shader = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
+	//shader = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
 
 	//hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
+		
 }
 
 //what to do when the image has to be draw
 void Game::render(void)
 {
+
 	//set the clear color (the background color)
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 
@@ -71,10 +81,11 @@ void Game::render(void)
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-   
+    /*
 	//create model matrix for cube
 	Matrix44 m;
-	m.rotate( (float)(angle * DEG2RAD), Vector3(0.0f,1.0f, 0.0f) ); //build a rotation matrix
+	//m.rotate( (float)(angle * DEG2RAD), Vector3(0.0f,1.0f, 0.0f) ); //build a rotation matrix
+	m.translate(0, 20, 0);
 
 	Shader* current_shader = shader;
 
@@ -87,7 +98,7 @@ void Game::render(void)
 		current_shader->setUniform("u_color", Vector4(1,1,1,1));
 		current_shader->setUniform("u_viewprojection", camera->viewprojection_matrix );
 		current_shader->setUniform("u_texture", texture);
-		current_shader->setUniform("u_model", m);
+		current_shader->setUniform("u_model", bomber->model);
 		current_shader->setUniform("u_time", time);
 
 		//current_shader->setUniform("u_model", m);
@@ -96,9 +107,14 @@ void Game::render(void)
 		//disable shader
 		current_shader->disable();
 	}
-   
+    */
+
+	bomber->render();
+
+	//world->render();
 	//Draw out world
 	drawGrid();
+
 
 	//render the FPS
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
@@ -109,6 +125,7 @@ void Game::render(void)
 
 void Game::update(double seconds_elapsed)
 {
+	//world->update()
 	float speed = seconds_elapsed * 100; //the speed is defined by the seconds_elapsed so it goes constant
 
 	//example

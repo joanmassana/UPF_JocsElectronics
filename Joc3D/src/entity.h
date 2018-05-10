@@ -13,6 +13,7 @@ This class also stores the matrices used to do the transformation and projection
 #include "game.h"
 
 class Shader;
+class Texture;
 
 class Entity
 {
@@ -25,21 +26,22 @@ public:
 	std::string lowmesh_name;
 	Shader* shader;
 
+	Texture* texture;
 	std::string texture_name;
 	std::string normal_texture_name;
 	std::string detail_texture_name;
 
-	float lod_distance_threshold;
+	//float lod_distance_threshold;
 
 	//CONSTRUCTORS
-	Entity();
+	Entity(std::string name);
 	virtual ~Entity();
 
 	//METHODS
 	virtual void render();
 	virtual void update(float elapsed_time);
 
-	Vector3 getPosition();
+	void getPosition();
 
 	Entity* parent;		//pointer to my parent entity
 	
@@ -55,12 +57,16 @@ public:
 
 class Airplane : public Entity {
 public:
+
 	float speed;
 	bool is_player;
 
-	Airplane();
+	//CONSTRUCTORS
+	Airplane(std::string name);
+	virtual ~Airplane();
+	
 	void applyLookAt(Camera* camera);
-	void update();
+	void update(float elapsed_time);
 };
 
 
