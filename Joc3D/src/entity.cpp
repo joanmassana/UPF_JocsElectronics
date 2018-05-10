@@ -58,6 +58,7 @@ Matrix44 Entity::getGlobalMatrix()
 Airplane::Airplane(string name) : Entity(name) {
 	mesh_name = "data/assets/bomber/bomber_axis.ASE";
 	texture_name = "data/assets/bomber/bomber_axis.tga";
+	speed = 0.1;
 }
 
 void Airplane::applyLookAt(Camera * camera)
@@ -66,5 +67,5 @@ void Airplane::applyLookAt(Camera * camera)
 
 void Airplane::update()
 {
-	model.translate(0,0,-0.03);
+	model.translate(0,0,-speed);
 }
