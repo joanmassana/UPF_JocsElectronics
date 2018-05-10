@@ -15,6 +15,8 @@ Texture* texture = NULL;
 Shader* shader = NULL;
 float angle = 0;
 
+Airplane* bomber = new Airplane("Heinkel");
+
 Game* Game::instance = NULL;
 
 Game::Game(int window_width, int window_height, SDL_Window* window)
@@ -41,11 +43,11 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	camera->setPerspective(70.f,window_width/(float)window_height,0.1f,10000.f); //set the projection, we want to be perspective
 
 	//create a plane mesh
-	mesh = Mesh::Load("data/assets/bomber/bomber_axis.ASE");
+	mesh = Mesh::Load(bomber->mesh_name.c_str());
 
 	//load one texturek
 	texture = new Texture();
- 	texture->load("data/assets/bomber/bomber_axis.tga");
+ 	texture->load(bomber->texture_name.c_str());
 
 	// example of shader loading
 	shader = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
@@ -73,8 +75,8 @@ void Game::render(void)
 	glEnable(GL_CULL_FACE);
    
 	//create model matrix for cube
-	Matrix44 m;
-	m.rotate( (float)(angle * DEG2RAD), Vector3(0.0f,1.0f, 0.0f) ); //build a rotation matrix
+	//Matrix44 m;
+	//m.rotate( (float)(angle * DEG2RAD), Vector3(0.0f,1.0f, 0.0f) ); //build a rotation matrix
 
 	Shader* current_shader = shader;
 
@@ -87,7 +89,7 @@ void Game::render(void)
 		current_shader->setUniform("u_color", Vector4(1,1,1,1));
 		current_shader->setUniform("u_viewprojection", camera->viewprojection_matrix );
 		current_shader->setUniform("u_texture", texture);
-		current_shader->setUniform("u_model", m);
+		current_shader->setUniform("u_model", bomber->model);
 		current_shader->setUniform("u_time", time);
 
 		//current_shader->setUniform("u_model", m);
@@ -109,6 +111,7 @@ void Game::render(void)
 
 void Game::update(double seconds_elapsed)
 {
+	bomber->update();
 	float speed = seconds_elapsed * 100; //the speed is defined by the seconds_elapsed so it goes constant
 
 	//example

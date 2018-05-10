@@ -1,22 +1,19 @@
 #include "entity.h"
-
+#include "shader.h"
 #include "includes.h"
 #include <iostream>
+using namespace std;
 
-
-Entity::Entity()
+Entity::Entity(string name)
 {
-	
+	this->name = name;
+	//shader = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
+
 }
 
 Entity::~Entity()
 {
 
-}
-
-Airplane :: Airplane() {
-	mesh_name = "data/assets/bomber/bomber_axis.ASE";
-	texture_name = "data/assets/bomber/bomber_axis.tga";
 }
 
 void Entity::render() 
@@ -56,4 +53,18 @@ Matrix44 Entity::getGlobalMatrix()
 	if (parent) //if I have a parent, ask his global and concatenate
 		return model * parent->getGlobalMatrix();
 	return model; //otherwise just return my model as global
+}
+
+Airplane::Airplane(string name) : Entity(name) {
+	mesh_name = "data/assets/bomber/bomber_axis.ASE";
+	texture_name = "data/assets/bomber/bomber_axis.tga";
+}
+
+void Airplane::applyLookAt(Camera * camera)
+{
+}
+
+void Airplane::update()
+{
+	model.translate(0,0,-0.03);
 }

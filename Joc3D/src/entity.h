@@ -12,7 +12,10 @@ This class also stores the matrices used to do the transformation and projection
 #include "camera.h"
 #include "game.h"
 
+using namespace std;
+
 class Shader;
+class Texture;
 
 class Entity
 {
@@ -29,10 +32,10 @@ public:
 	std::string normal_texture_name;
 	std::string detail_texture_name;
 
-	float lod_distance_threshold;
+	//float lod_distance_threshold;
 
 	//CONSTRUCTORS
-	Entity();
+	Entity(string name);
 	virtual ~Entity();
 
 	//METHODS
@@ -55,10 +58,11 @@ public:
 
 class Airplane : public Entity {
 public:
+	
 	float speed;
 	bool is_player;
 
-	Airplane();
+	Airplane(string name);
 	void applyLookAt(Camera* camera);
 	void update();
 };
