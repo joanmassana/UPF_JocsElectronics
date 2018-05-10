@@ -7,8 +7,6 @@
 #include "input.h"
 #include "entity.h"
 
-#include <iostream>
-#include <vector>
 #include <cmath>
 
 //some globals
@@ -17,10 +15,7 @@ Texture* texture = NULL;
 Shader* shader = NULL;
 float angle = 0;
 
-//Vector de entities
-std::vector<Entity*> entities;
-
-Airplane* bomber = new Airplane("b1");
+Airplane* bomber = new Airplane("Heinkel");
 
 Game* Game::instance = NULL;
 
@@ -48,25 +43,22 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	camera->setPerspective(70.f,window_width/(float)window_height,0.1f,10000.f); //set the projection, we want to be perspective
 
 	//create a plane mesh
-	//mesh = Mesh::Load(bomber->mesh_name.c_str());
-	
+	mesh = Mesh::Load(bomber->mesh_name.c_str());
 
-	//load one texture
-	/*texture = new Texture();
- 	texture->load("data/assets/bomber/bomber_axis.tga");*/
+	//load one texturek
+	texture = new Texture();
+ 	texture->load(bomber->texture_name.c_str());
 
 	// example of shader loading
-	//shader = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
+	shader = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
 
 	//hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
-		
 }
 
 //what to do when the image has to be draw
 void Game::render(void)
 {
-
 	//set the clear color (the background color)
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 
@@ -81,11 +73,10 @@ void Game::render(void)
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-    /*
+   
 	//create model matrix for cube
-	Matrix44 m;
+	//Matrix44 m;
 	//m.rotate( (float)(angle * DEG2RAD), Vector3(0.0f,1.0f, 0.0f) ); //build a rotation matrix
-	m.translate(0, 20, 0);
 
 	Shader* current_shader = shader;
 
@@ -107,14 +98,9 @@ void Game::render(void)
 		//disable shader
 		current_shader->disable();
 	}
-    */
-
-	bomber->render();
-
-	//world->render();
+   
 	//Draw out world
 	drawGrid();
-
 
 	//render the FPS
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
@@ -125,7 +111,7 @@ void Game::render(void)
 
 void Game::update(double seconds_elapsed)
 {
-	//world->update()
+	bomber->update();
 	float speed = seconds_elapsed * 100; //the speed is defined by the seconds_elapsed so it goes constant
 
 	//example
@@ -139,11 +125,15 @@ void Game::update(double seconds_elapsed)
 	}
 
 	//async input to move the camera around
-	if(Input::isKeyPressed(SDL_SCANCODE_LSHIFT) ) speed *= 10; //move faster with left shift
+	if (Input::isKeyPressed(SDL_SCANCODE_LSHIFT) ) speed *= 10; //move faster with left shift
 	if (Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_UP)) camera->move(Vector3(0.0f, 0.0f, 1.0f) * speed);
 	if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) camera->move(Vector3(0.0f, 0.0f,-1.0f) * speed);
 	if (Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_LEFT)) camera->move(Vector3(1.0f, 0.0f, 0.0f) * speed);
 	if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) camera->move(Vector3(-1.0f,0.0f, 0.0f) * speed);
+	if (Input::wasKeyPressed(SDL_SCANCODE_C)) {
+		cout << "This should change camera" << endl;
+		//camera->lookAt(Vector3(bomber->model), Vector3(20.f, 20.f, 20.f), Vector3(0.f, 1.f, 0.f));
+	}
 
 	//to navigate with the mouse fixed in the middle
 	if (mouse_locked)

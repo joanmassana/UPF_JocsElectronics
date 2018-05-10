@@ -1,16 +1,14 @@
 #include "entity.h"
-
-#include "includes.h"
-#include "texture.h"
-#include "mesh.h"
 #include "shader.h"
+#include "includes.h"
 #include <iostream>
+using namespace std;
 
-
-Entity::Entity(std::string name)
+Entity::Entity(string name)
 {
-	Matrix44 model = this->model;
-	shader = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
+	this->name = name;
+	//shader = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
+
 }
 
 Entity::~Entity()
@@ -20,44 +18,6 @@ Entity::~Entity()
 
 void Entity::render() 
 {
-
-	//set the clear color (the background color)
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-
-	// Clear the window and the depth buffer
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//set the camera as default
-	Camera::current->enable();
-
-	glDisable(GL_DEPTH_TEST);
-
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-
-
-	if (shader)
-	{
-		//enable shader
-	    shader->enable();
-
-		//upload uniforms
-		shader->setUniform("u_color", Vector4(1, 1, 1, 1));
-		shader->setUniform("u_viewprojection", Camera::current->viewprojection_matrix);
-		shader->setUniform("u_texture", texture);
-		shader->setUniform("u_model", model);
-
-		//current_shader->setUniform("u_model", m);
-		Mesh* mesh = new Mesh();
-		mesh = Mesh::Load(mesh_name.c_str());
-
-		mesh->render(GL_TRIANGLES, shader);
-
-		//disable shader
-		shader->disable();
-	}
-	
 	//if this was an EntityMesh...
 	//Matrix44 global_matrix = getGlobalMatrix();
 	//renderMesh( global_matrix );
@@ -70,9 +30,10 @@ void Entity::update(float elapsed_time)
 
 }
 
-void Entity::getPosition()
+Vector3 Entity::getPosition()
 {
-
+	Vector3 pos;
+	return pos;
 }
 
 void Entity::addChild(Entity* ent)
@@ -94,22 +55,17 @@ Matrix44 Entity::getGlobalMatrix()
 	return model; //otherwise just return my model as global
 }
 
-Airplane::Airplane(std::string name) : Entity(name)
-{
+Airplane::Airplane(string name) : Entity(name) {
 	mesh_name = "data/assets/bomber/bomber_axis.ASE";
 	texture_name = "data/assets/bomber/bomber_axis.tga";
-	texture = new Texture();
-	texture->load(texture_name.c_str());
-}
-
-Airplane::~Airplane()
-{
+	speed = 0.1;
 }
 
 void Airplane::applyLookAt(Camera * camera)
 {
 }
 
-void Airplane::update(float elapsed_time)
+void Airplane::update()
 {
+	model.translate(0,0,-speed);
 }
