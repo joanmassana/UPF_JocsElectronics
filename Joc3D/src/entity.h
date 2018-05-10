@@ -8,14 +8,16 @@ This class also stores the matrices used to do the transformation and projection
 #define ENTITY_H
 
 #include "framework.h"
-#include "utils.h";
+#include "utils.h"
+#include "camera.h"
+#include "game.h"
 
 class Shader;
 
 class Entity
 {
 public:
-	
+
 	//ATTRIBUTES
 	std::string name;
 	Matrix44 model;			//or transform
@@ -49,6 +51,16 @@ public:
 	void removeChild(Entity* ent);
 
 	Matrix44 getGlobalMatrix(); //returns transform in world coordinates
+};
+
+class Airplane : public Entity {
+public:
+	float speed;
+	bool is_player;
+
+	Airplane();
+	void applyLookAt(Camera* camera);
+	void update();
 };
 
 

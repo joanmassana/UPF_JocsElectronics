@@ -14,6 +14,11 @@ Entity::~Entity()
 
 }
 
+Airplane :: Airplane() {
+	mesh_name = "data/assets/bomber/bomber_axis.ASE";
+	texture_name = "data/assets/bomber/bomber_axis.tga";
+}
+
 void Entity::render() 
 {
 	//if this was an EntityMesh...
@@ -21,7 +26,8 @@ void Entity::render()
 	//renderMesh( global_matrix );
 	for (int i = 0; i < children.size(); i++)
 		children[i]->render(); //repeat for every child
-}
+}
+
 void Entity::update(float elapsed_time)
 {
 
