@@ -59,6 +59,7 @@
       <Filter>utils</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\entity.cpp" />
+    <ClCompile Include="..\..\src\world.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\camera.h" />
@@ -115,6 +116,7 @@
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\entity.h" />
+    <ClInclude Include="..\..\src\world.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="extra">

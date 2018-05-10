@@ -109,6 +109,7 @@
     <ClCompile Include="..\..\src\shader.cpp" />
     <ClCompile Include="..\..\src\texture.cpp" />
     <ClCompile Include="..\..\src\utils.cpp" />
+    <ClCompile Include="..\..\src\world.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\camera.h" />
@@ -131,6 +132,7 @@
     <ClInclude Include="..\..\src\shader.h" />
     <ClInclude Include="..\..\src\texture.h" />
     <ClInclude Include="..\..\src\utils.h" />
+    <ClInclude Include="..\..\src\world.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

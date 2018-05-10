@@ -9,17 +9,21 @@
 
 #include <cmath>
 
-//some globals
-Mesh* mesh = NULL;
-Mesh* mesh2 = NULL;
-Texture* texture = NULL;
-Texture* texture2 = NULL;
+//Todas las meshes que usamos
+Mesh* mesh_bomber = NULL;
+Mesh* mesh_island = NULL;
+
+//Todas las texturas que usamos
+Texture* texture_bomber = NULL;
+Texture* texture_island = NULL;
+
+//Shaders
 Shader* shader = NULL;
-Shader* shader2 = NULL;
 
 float angle = 0;
 
 Airplane* bomber = new Airplane("Heinkel");
+Entity* island = new Entity("Island");
 
 Game* Game::instance = NULL;
 
@@ -43,25 +47,23 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 
 	//create our camera
 	camera = new Camera();
-	camera->lookAt(Vector3(0.f,100.f, 100.f),Vector3(0.f,0.f,0.f), Vector3(0.f,1.f,0.f)); //position the camera and point to 0,0,0
+	camera->lookAt(Vector3(0.f, 450.f, 100.f),Vector3(0.f,400.f,0.f), Vector3(0.f,1.f,0.f)); //position the camera and point to 0,0,0
 	camera->setPerspective(70.f,window_width/(float)window_height,0.1f,10000.f); //set the projection, we want to be perspective
 
-	//create a plane mesh
-	mesh = Mesh::Load(bomber->mesh_name.c_str());
-	bomber->model.translate(0, 30, 0);
-	mesh2 = Mesh::Load("data/assets/island/island.ASE");
+	//Load meshes
+	mesh_bomber = Mesh::Load("data/assets/bomber/bomber_axis.ASE");
+	mesh_island = Mesh::Load("data/assets/island/island.ASE");
 
-
-	//load one texturek
-	texture = new Texture();
- 	texture->load(bomber->texture_name.c_str());
-
-	texture2 = new Texture();
-	texture2->load("data/assets/island/island_color_luz.tga");
+	//Load textures
+	texture_bomber = new Texture();
+ 	texture_bomber->load("data/assets/bomber/bomber_axis.tga");
+	texture_island = new Texture();
+	texture_island->load("data/assets/island/island_color_luz.tga");
 
 	// example of shader loading
 	shader = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
-	shader2 = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
+
+	bomber->model.translate(0, 450, 0);
 
 	//hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
@@ -85,10 +87,6 @@ void Game::render(void)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
    
-	//create model matrix for cube
-	//Matrix44 m;
-	//m.rotate( (float)(angle * DEG2RAD), Vector3(0.0f,1.0f, 0.0f) ); //build a rotation matrix
-
 	Shader* current_shader = shader;
 
 	if(current_shader)
@@ -99,12 +97,19 @@ void Game::render(void)
 		//upload uniforms
 		current_shader->setUniform("u_color", Vector4(1,1,1,1));
 		current_shader->setUniform("u_viewprojection", camera->viewprojection_matrix );
-		current_shader->setUniform("u_texture", texture);
+		current_shader->setUniform("u_texture", texture_bomber);
 		current_shader->setUniform("u_model", bomber->model);
 		current_shader->setUniform("u_time", time);
 
-		//current_shader->setUniform("u_model", m);
-		mesh->render(GL_TRIANGLES, current_shader);
+		mesh_bomber->render(GL_TRIANGLES, current_shader);
+
+		current_shader->setUniform("u_color", Vector4(1, 1, 1, 1));
+		current_shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+		current_shader->setUniform("u_texture", texture_island);
+		current_shader->setUniform("u_model", island->model);
+		current_shader->setUniform("u_time", time);
+
+		mesh_island->render(GL_TRIANGLES, current_shader);
 
 		//disable shader
 		current_shader->disable();
