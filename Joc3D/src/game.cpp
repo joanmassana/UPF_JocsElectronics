@@ -41,11 +41,11 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	camera->setPerspective(70.f,window_width/(float)window_height,0.1f,10000.f); //set the projection, we want to be perspective
 
 	//create a plane mesh
-	mesh = Mesh::Load(Entity::mesh_name);
+	mesh = Mesh::Load("data/assets/bomber/bomber_axis.ASE");
 
 	//load one texturek
 	texture = new Texture();
- 	texture->load(texture_name);
+ 	texture->load("data/assets/bomber/bomber_axis.tga");
 
 	// example of shader loading
 	shader = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
