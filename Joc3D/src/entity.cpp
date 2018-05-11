@@ -90,7 +90,7 @@ void Airplane::applyLookAt(Camera * camera)
 void Airplane::update()
 {
 	model.translate(0,0, -speed);
-	Game::instance->sky->model.translate(0, 0, -speed);
+	Camera::current->lookAt(model*Vector3(0, 0, 20), model*Vector3(0, -10, -10), model.rotateVector(Vector3(0, 1, 0)));
 	if (Input::isKeyPressed(SDL_SCANCODE_LSHIFT) ) speed *= 10; //move faster with left shift
 	if (Input::isKeyPressed(SDL_SCANCODE_E)) this->model.rotate((float)(dirSpeed/2 * DEG2RAD), Vector3(0.0f, 1.0f, 0.0f));
 	if (Input::isKeyPressed(SDL_SCANCODE_Q)) this->model.rotate((float)(dirSpeed/2 * DEG2RAD), Vector3(0.0f, -1.0f, 0.0f));

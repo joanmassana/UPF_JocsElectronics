@@ -122,6 +122,8 @@ void Game::render(void)
 
 		mesh_island->render(GL_TRIANGLES, current_shader);
 
+		sky->model.setTranslation(Camera::current->eye.x, Camera::current->eye.y, Camera::current->eye.z);
+
 		current_shader->setUniform("u_color", Vector4(1, 1, 1, 1));
 		current_shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 		current_shader->setUniform("u_texture", texture_sky);
