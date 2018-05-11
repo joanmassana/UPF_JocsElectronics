@@ -1,5 +1,6 @@
 #include "entity.h"
 #include "shader.h"
+#include "input.h"
 #include "includes.h"
 #include <iostream>
 using namespace std;
@@ -77,15 +78,24 @@ Matrix44 Entity::getGlobalMatrix()
 Airplane::Airplane(string name) : Entity(name) {
 	mesh_name = "data/assets/bomber/bomber_axis.ASE";
 	texture_name = "data/assets/bomber/bomber_axis.tga";
-	speed = 0.1;
+	speed = 0.15;
+	dirSpeed = 0.2;
 }
 
 void Airplane::applyLookAt(Camera * camera)
 {
+
 }
 
 void Airplane::update()
 {
 	model.translate(0,0, -speed);
-	Camera::current->lookAt(model*Vector3(0, 0, 15), model*Vector3(0, -10, -10), model.rotateVector(Vector3(0, 1, 0)));
+	Game::instance->sky->model.translate(0, 0, -speed);
+	if (Input::isKeyPressed(SDL_SCANCODE_LSHIFT) ) speed *= 10; //move faster with left shift
+	if (Input::isKeyPressed(SDL_SCANCODE_E)) this->model.rotate((float)(dirSpeed/2 * DEG2RAD), Vector3(0.0f, 1.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_Q)) this->model.rotate((float)(dirSpeed/2 * DEG2RAD), Vector3(0.0f, -1.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_UP)) this->model.rotate((float)(dirSpeed * DEG2RAD), Vector3(1.0f, 0.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) this->model.rotate((float)(dirSpeed * DEG2RAD), Vector3(-1.0f, 0.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_LEFT)) this->model.rotate((float)(dirSpeed * DEG2RAD), Vector3(0.0f, 0.0f, -1.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) this->model.rotate((float)(dirSpeed * DEG2RAD), Vector3(0.0f, 0.0f, 1.0f));
 }

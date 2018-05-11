@@ -8,11 +8,14 @@
 #include "includes.h"
 #include "camera.h"
 #include "utils.h"
+ 
+class Entity;
 
 class Game
 {
 public:
 	static Game* instance;
+	Entity* sky;
 
 	//window
 	SDL_Window* window;

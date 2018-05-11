@@ -4,6 +4,7 @@
 #include <iostream>
 
 Camera* Camera::current = NULL;
+Camera* Camera::freeLook = NULL;
 
 Camera::Camera()
 {

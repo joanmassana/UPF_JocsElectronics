@@ -60,6 +60,7 @@ class Airplane : public Entity {
 public:
 	
 	float speed;
+	float dirSpeed;
 	bool is_player;
 
 	Airplane(string name);

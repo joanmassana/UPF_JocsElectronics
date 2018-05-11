@@ -14,6 +14,7 @@ class Camera
 {
 public:
 	static Camera* current;
+	static Camera* freeLook;
 
 	enum { PERSPECTIVE, ORTHOGRAPHIC }; //types of cameras available
 
