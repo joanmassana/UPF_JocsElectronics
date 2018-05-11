@@ -11,6 +11,7 @@ This class also stores the matrices used to do the transformation and projection
 #include "utils.h"
 #include "camera.h"
 #include "game.h"
+#include "entity.h"
 
 using namespace std;
 
@@ -22,15 +23,9 @@ class World
 public:
 
 	//ATTRIBUTES
-	std::string name;
-	Matrix44 model;			//or transform
-	std::string mesh_name;
-	std::string lowmesh_name;
-	Shader* shader;
-
-	std::string texture_name;
-	std::string normal_texture_name;
-	std::string detail_texture_name;
+	Entity* terrain;
+	Entity* sky;
+	Entity* sea;
 
 	//float lod_distance_threshold;
 

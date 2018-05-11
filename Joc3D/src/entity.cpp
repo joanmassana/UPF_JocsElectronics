@@ -18,6 +18,25 @@ Entity::~Entity()
 
 void Entity::render() 
 {
+	//Shader* current_shader = shader;
+
+	//if (current_shader)
+	//{
+	//	//enable shader
+	//	current_shader->enable();
+
+	//	//upload uniforms
+	//	current_shader->setUniform("u_color", Vector4(1, 1, 1, 1));
+	//	current_shader->setUniform("u_viewprojection", Camera::current->viewprojection_matrix);
+	//	current_shader->setUniform("u_texture", this->texture_bomber);
+	//	current_shader->setUniform("u_model", this->model);
+
+	//	mesh_bomber->render(GL_TRIANGLES, current_shader);
+
+	//	//disable shader
+	//	current_shader->disable();
+	//}
+
 	//if this was an EntityMesh...
 	//Matrix44 global_matrix = getGlobalMatrix();
 	//renderMesh( global_matrix );
@@ -67,8 +86,6 @@ void Airplane::applyLookAt(Camera * camera)
 
 void Airplane::update()
 {
-
 	model.translate(0,0, -speed);
-	Camera::current->lookAt(model*Vector3(0, 1.5, 30), model*Vector3(0, 0, -5), model.rotateVector(Vector3(0, 1, 0)));
-
+	Camera::current->lookAt(model*Vector3(0, 0, 15), model*Vector3(0, -10, -10), model.rotateVector(Vector3(0, 1, 0)));
 }
