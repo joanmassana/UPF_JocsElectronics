@@ -16,6 +16,7 @@ using namespace std;
 
 class Shader;
 class Texture;
+class Mesh;
 
 class Entity
 {
@@ -27,7 +28,8 @@ public:
 	std::string mesh_name;
 	std::string lowmesh_name;
 	Shader* shader;
-
+	Mesh* mesh;
+	Texture* texture;
 	std::string texture_name;
 	std::string normal_texture_name;
 	std::string detail_texture_name;
@@ -41,9 +43,7 @@ public:
 	//METHODS
 	virtual void render();
 	virtual void update(float elapsed_time);
-
-	Vector3 getPosition();
-
+	
 	Entity* parent;		//pointer to my parent entity
 	
 	//pointers to my children

@@ -2,14 +2,14 @@
 #include "shader.h"
 #include "input.h"
 #include "includes.h"
+#include "texture.h"
+#include "mesh.h"
 #include <iostream>
 using namespace std;
 
 Entity::Entity(string name)
 {
 	this->name = name;
-	//shader = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
-
 }
 
 Entity::~Entity()
@@ -50,12 +50,6 @@ void Entity::update(float elapsed_time)
 
 }
 
-Vector3 Entity::getPosition()
-{
-	Vector3 pos;
-	return pos;
-}
-
 void Entity::addChild(Entity* ent)
 {
 
@@ -78,6 +72,8 @@ Matrix44 Entity::getGlobalMatrix()
 Airplane::Airplane(string name) : Entity(name) {
 	mesh_name = "data/assets/bomber/bomber_axis.ASE";
 	texture_name = "data/assets/bomber/bomber_axis.tga";
+	texture = Texture::Load(texture_name.c_str());
+	mesh = Mesh::Load(mesh_name.c_str());
 	speed = 0.15;
 	dirSpeed = 0.2;
 }

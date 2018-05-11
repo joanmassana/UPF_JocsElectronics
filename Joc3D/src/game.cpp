@@ -25,10 +25,9 @@ Shader* shader = NULL;
 
 float angle = 0;
 
-World* world = new World();
-
-Airplane* bomber = new Airplane("Heinkel");
-Entity* island = new Entity("Island");
+Airplane* bomber;
+Entity* island;
+World* world;
 
 
 Game* Game::instance = NULL;
@@ -52,6 +51,9 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	glEnable( GL_DEPTH_TEST ); //check the occlusions using the Z buffer
 
 	sky = new Entity("sky");
+	world = new World();
+	bomber = new Airplane("Heinkel");
+	island = new Entity("Island");
 
 	//create our camera
 	camera = new Camera();
