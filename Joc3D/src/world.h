@@ -12,6 +12,7 @@ This class also stores the matrices used to do the transformation and projection
 #include "camera.h"
 #include "game.h"
 #include "entity.h"
+#include "entitymesh.h"
 
 using namespace std;
 

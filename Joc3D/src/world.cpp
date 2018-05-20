@@ -10,7 +10,7 @@ World::World()
 	//Se crea cielo, isla, etc (paisaje)
 	this->terrain = new Terrain("island");
 	this->sky = new Sky("sky");
-	//this->sea = new Entity("sea");
+	this->sea = new Entity("sea");
 	this->player = new Airplane("Heinkel");
 }
 
@@ -25,12 +25,15 @@ void World::render()
 	sky->render();
 	//sea->render();
 	player->render();
+
+	/* DISTANCE CULLING - Slides Optimización Render */
+
 }
 
 void World::update()
 {
 	terrain->update();
 	sky->update();
-	//sea->update();
+	sea->update();
 	player->update();
 }

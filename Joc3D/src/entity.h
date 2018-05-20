@@ -25,14 +25,6 @@ public:
 	//ATTRIBUTES
 	std::string name;
 	Matrix44 model;			//or transform
-	std::string mesh_name;
-	std::string lowmesh_name;
-	Shader* shader;
-	Mesh* mesh;
-	Texture* texture;
-	std::string texture_name;
-	std::string normal_texture_name;
-	std::string detail_texture_name;
 
 	//float lod_distance_threshold;
 
@@ -43,44 +35,8 @@ public:
 	//METHODS
 	virtual void render();
 	virtual void update();
-	
-	Entity* parent;		//pointer to my parent entity
-	
-	//pointers to my children
-	std::vector<Entity*> children;		
-	
-	//methods
-	void addChild(Entity* ent);
-	void removeChild(Entity* ent);
-
-	Matrix44 getGlobalMatrix(); //returns transform in world coordinates
 };
 
-class Airplane : public Entity {
-public:
-	
-	float speed;
-	float dirSpeed;
-	bool is_player;
-
-	Airplane(string name);
-	void applyLookAt(Camera* camera);
-	void update();
-};
-
-class Terrain : public Entity {
-public:
-
-	Terrain(string name);
-	void update();
-};
-
-class Sky : public Entity {
-public:
-
-	Sky(string name);
-	void update();
-};
 
 
 #endif
