@@ -17,13 +17,36 @@ Entity::~Entity()
 
 }
 
+void Entity::destroy()
+{
+	to_destroy.push_back(this);
+}
+
 void Entity::render() 
 {
-	
+	for (int i = 0; i < children.size(); i++) {
+		children[i]->render();
+	}
 }
 
 void Entity::update()
 {
 
+}
+
+void Entity::addChild(Entity * ent)
+{
+}
+
+void Entity::removeChild(Entity * ent)
+{
+}
+
+Matrix44 Entity::getGlobalMatrix()
+{
+	if (parent) {
+		return model * parent->getGlobalMatrix();
+	}
+	return model;
 }
 

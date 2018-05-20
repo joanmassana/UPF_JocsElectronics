@@ -26,15 +26,24 @@ public:
 	std::string name;
 	Matrix44 model;			//or transform
 
-	//float lod_distance_threshold;
+	Entity* parent;
+	std::vector<Entity*> children;
+	std::vector<Entity*> to_destroy;
 
 	//CONSTRUCTORS
 	Entity(string name);
 	virtual ~Entity();
 
 	//METHODS
+	void destroy();
+
 	virtual void render();
 	virtual void update();
+
+	void addChild(Entity* ent);
+	void removeChild(Entity* ent);
+
+	Matrix44 getGlobalMatrix();
 };
 
 
