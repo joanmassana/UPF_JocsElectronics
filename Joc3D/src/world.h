@@ -26,6 +26,8 @@ public:
 	Entity* terrain;
 	Entity* sky;
 	Entity* sea;
+	Airplane* player;
+	std::vector<Entity*> planes;
 
 	//float lod_distance_threshold;
 
@@ -35,7 +37,7 @@ public:
 
 	//METHODS
 	virtual void render();
-	virtual void update(float elapsed_time);
+	virtual void update();
 
 };
 

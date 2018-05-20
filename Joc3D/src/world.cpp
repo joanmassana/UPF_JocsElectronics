@@ -8,8 +8,10 @@ using namespace std;
 World::World()
 {
 	//Se crea cielo, isla, etc (paisaje)
-	this->terrain = new Entity("island");
-	this->sky = new Entity("sky");
+	this->terrain = new Terrain("island");
+	this->sky = new Sky("sky");
+	//this->sea = new Entity("sea");
+	this->player = new Airplane("Heinkel");
 }
 
 World::~World()
@@ -19,10 +21,16 @@ World::~World()
 
 void World::render()
 {
-
+	terrain->render();
+	sky->render();
+	//sea->render();
+	player->render();
 }
 
-void World::update(float elapsed_time)
+void World::update()
 {
-
+	terrain->update();
+	sky->update();
+	//sea->update();
+	player->update();
 }

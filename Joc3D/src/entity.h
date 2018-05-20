@@ -42,7 +42,7 @@ public:
 
 	//METHODS
 	virtual void render();
-	virtual void update(float elapsed_time);
+	virtual void update();
 	
 	Entity* parent;		//pointer to my parent entity
 	
@@ -65,6 +65,20 @@ public:
 
 	Airplane(string name);
 	void applyLookAt(Camera* camera);
+	void update();
+};
+
+class Terrain : public Entity {
+public:
+
+	Terrain(string name);
+	void update();
+};
+
+class Sky : public Entity {
+public:
+
+	Sky(string name);
 	void update();
 };
 
