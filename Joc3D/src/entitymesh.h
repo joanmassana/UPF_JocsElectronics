@@ -1,8 +1,3 @@
-/*  by Javi Agenjo 2013 UPF  javi.agenjo@gmail.com
-This class wraps the behaviour of a camera. A Camera helps to set the point of view from where we will render the scene.
-The most important attributes are  eye and center which say where is the camera and where is it pointing.
-This class also stores the matrices used to do the transformation and projection of the scene.
-*/
 
 #ifndef ENTITYMESH_H
 #define ENTITYMESH_H
