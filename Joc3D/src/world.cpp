@@ -14,11 +14,11 @@ World::World()
 	//Creamos el avion Player
 	this->player = new Airplane("Spitfire", RAF_FIGHTER, Vector3(0,0,0), true);
 	//Creamos otros aviones
-	Airplane* g1 = new Airplane("Heinkel", LUFTWAFFE_BOMBER, Vector3(-100, 700, 240), false);
-	Airplane* g2 = new Airplane("Heinkel", LUFTWAFFE_BOMBER, Vector3(-50, 700, 220), false);
-	Airplane* g3 = new Airplane("Heinkel", LUFTWAFFE_BOMBER, Vector3(0, 700, 200), false);
-	Airplane* g4 = new Airplane("Heinkel", LUFTWAFFE_BOMBER, Vector3(50, 700, 220), false);
-	Airplane* g5 = new Airplane("Heinkel", LUFTWAFFE_BOMBER, Vector3(100, 700, 240), false);
+	Airplane* g1 = new Airplane("Heinkel", LUFTWAFFE_BOMBER, Vector3(-100, 700, -240), false);
+	Airplane* g2 = new Airplane("Heinkel", LUFTWAFFE_BOMBER, Vector3(-50, 700, -220), false);
+	Airplane* g3 = new Airplane("Heinkel", LUFTWAFFE_BOMBER, Vector3(0, 700, -200), false);
+	Airplane* g4 = new Airplane("Heinkel", LUFTWAFFE_BOMBER, Vector3(50, 700, -220), false);
+	Airplane* g5 = new Airplane("Heinkel", LUFTWAFFE_BOMBER, Vector3(100, 700, -240), false);
 	this->planes.push_back(g1);
 	this->planes.push_back(g2);
 	this->planes.push_back(g3);

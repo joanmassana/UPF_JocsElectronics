@@ -66,7 +66,7 @@ Airplane::Airplane(string name, AircraftType type, Vector3 mod, bool isPlayer) :
 
 	this->is_player = isPlayer;
 	if (is_player) {
-		this->model.translate(0, 1000, -500);
+		this->model.translate(0, 1000, 0);
 	}
 	else {
 		this->model.translate(mod.x, mod.y, mod.z);
