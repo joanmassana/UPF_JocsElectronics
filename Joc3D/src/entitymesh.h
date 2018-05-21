@@ -15,6 +15,8 @@ This class also stores the matrices used to do the transformation and projection
 
 using namespace std;
 
+enum AircraftType { RAF_FIGHTER, LUFTWAFFE_BOMBER };
+
 class Shader;
 class Texture;
 class Mesh;
@@ -54,7 +56,7 @@ public:
 	float dirSpeed;
 	bool is_player;
 
-	Airplane(string name);
+	Airplane(string name, AircraftType type, Vector3 mod, bool isPlayer);
 	void applyLookAt(Camera* camera);
 	void update();
 };

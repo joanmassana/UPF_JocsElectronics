@@ -107,7 +107,7 @@ void Camera::lookAt(const Vector3& eye, const Vector3& center, const Vector3& up
 	this->eye = eye;
 	this->center = center;
 	this->up = up;
-
+	
 	updateViewMatrix();
 }
 

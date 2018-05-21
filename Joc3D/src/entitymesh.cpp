@@ -47,15 +47,35 @@ void EntityMesh::update()
 
 }
 
-Airplane::Airplane(string name) : EntityMesh(name)
-{
-	mesh_name = "data/assets/bomber/bomber_axis.ASE";
-	texture_name = "data/assets/bomber/bomber_axis.tga";
+Airplane::Airplane(string name, AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh(name)
+{	
+	switch (type) {
+	case RAF_FIGHTER:
+		mesh_name = "data/assets/spitfire/spitfire.ASE";
+		texture_name = "data/assets/spitfire/spitfire_color_spec.tga";
+		speed = 0.2;
+		dirSpeed = 0.2;
+		break;
+	case LUFTWAFFE_BOMBER:
+		mesh_name = "data/assets/bomber/bomber_axis.ASE";
+		texture_name = "data/assets/bomber/bomber_axis.tga";
+		speed = 0.15;
+		dirSpeed = 0.12;
+		break;
+	}
+
+	this->is_player = isPlayer;
+	if (is_player) {
+		this->model.translate(0, 1000, -500);
+	}
+	else {
+		this->model.translate(mod.x, mod.y, mod.z);
+	}
+	
 	texture = Texture::Load(texture_name.c_str());
 	mesh = Mesh::Load(mesh_name.c_str());
-	speed = 0.15;
-	dirSpeed = 0.12;
-	this->model.translate(0, 450, 0);
+	
+	
 }
 
 void Airplane::applyLookAt(Camera * camera)
@@ -68,17 +88,19 @@ void Airplane::update()
 	//Movimiento hacia delante
 	model.translate(0, 0, -speed);
 
-	//Camara se mueve con el avión
-	Camera::current->lookAt(model*Vector3(0, 0, 20), model*Vector3(0, -10, -10), model.rotateVector(Vector3(0, 1, 0)));
+	if (is_player) {
+		//Camara se mueve con el avión
+		Camera::current->lookAt(model*Vector3(0, 1.5, 10), model*Vector3(0, 0, -10), model.rotateVector(Vector3(0, 1, 0)));
 
-	//Controles
-	if (Input::isKeyPressed(SDL_SCANCODE_LSHIFT)) speed *= 10; //move faster with left shift
-	if (Input::isKeyPressed(SDL_SCANCODE_E)) this->model.rotate((float)(dirSpeed / 4 * DEG2RAD), Vector3(0.0f, 1.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_Q)) this->model.rotate((float)(dirSpeed / 4 * DEG2RAD), Vector3(0.0f, -1.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_UP)) this->model.rotate((float)(dirSpeed * DEG2RAD), Vector3(1.0f, 0.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) this->model.rotate((float)(dirSpeed * DEG2RAD), Vector3(-1.0f, 0.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_LEFT)) this->model.rotate((float)(dirSpeed * DEG2RAD), Vector3(0.0f, 0.0f, -1.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) this->model.rotate((float)(dirSpeed * DEG2RAD), Vector3(0.0f, 0.0f, 1.0f));
+		//Controles
+		if (Input::isKeyPressed(SDL_SCANCODE_LSHIFT)) speed *= 10; //move faster with left shift
+		if (Input::isKeyPressed(SDL_SCANCODE_E)) this->model.rotate((float)(dirSpeed / 4 * DEG2RAD), Vector3(0.0f, 1.0f, 0.0f));
+		if (Input::isKeyPressed(SDL_SCANCODE_Q)) this->model.rotate((float)(dirSpeed / 4 * DEG2RAD), Vector3(0.0f, -1.0f, 0.0f));
+		if (Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_UP)) this->model.rotate((float)(dirSpeed * DEG2RAD), Vector3(1.0f, 0.0f, 0.0f));
+		if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) this->model.rotate((float)(dirSpeed * DEG2RAD), Vector3(-1.0f, 0.0f, 0.0f));
+		if (Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_LEFT)) this->model.rotate((float)(2 * dirSpeed * DEG2RAD), Vector3(0.0f, 0.0f, -1.0f));
+		if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) this->model.rotate((float)(2 * dirSpeed * DEG2RAD), Vector3(0.0f, 0.0f, 1.0f));
+	}
 }
 
 Terrain::Terrain(string name) : EntityMesh(name)
