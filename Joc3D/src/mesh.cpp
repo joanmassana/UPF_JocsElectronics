@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 
 #include "camera.h"
+#include "texture.h"
 #include "extra/coldet/coldet.h"
 
 std::map<std::string, Mesh*> Mesh::sMeshesLoaded;
@@ -26,7 +27,7 @@ long Mesh::num_triangles_rendered = 0;
 Mesh::Mesh()
 {
 	radius = 0;
-	vertices_vbo_id = uvs_vbo_id = normals_vbo_id = colors_vbo_id = interleaved_vbo_id = 0; 
+	vertices_vbo_id = uvs_vbo_id = normals_vbo_id = colors_vbo_id = interleaved_vbo_id = 0;
 	collision_model = NULL;
 	clear();
 }
@@ -35,6 +36,7 @@ Mesh::~Mesh()
 {
 	clear();
 }
+
 
 void Mesh::clear()
 {
@@ -77,22 +79,29 @@ void Mesh::enableBuffers(Shader* sh)
 	if (vertex_location == -1)
 		return;
 
-	int interleave_offset = interleaved.size() ? sizeof(tInterleaved) : 0;
-	int offset_normal = sizeof(Vector3);
-	int offset_uv = sizeof(Vector3) + sizeof(Vector3);
+	int spacing = 0;
+	int offset_normal = 0;
+	int offset_uv = 0;
+
+	if (interleaved.size())
+	{
+		spacing = sizeof(tInterleaved);
+		offset_normal = sizeof(Vector3);
+		offset_uv = sizeof(Vector3) + sizeof(Vector3);
+	}
 
 	glEnableVertexAttribArray(vertex_location);
 
 	if (vertices_vbo_id || interleaved_vbo_id)
 	{
-		glBindBuffer(GL_ARRAY_BUFFER, interleave_offset ? interleaved_vbo_id : vertices_vbo_id);
-		glVertexAttribPointer(vertex_location, 3, GL_FLOAT, GL_FALSE, interleave_offset, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, interleaved_vbo_id ? interleaved_vbo_id : vertices_vbo_id);
+		glVertexAttribPointer(vertex_location, 3, GL_FLOAT, GL_FALSE, spacing, 0);
 	}
 	else
-		glVertexAttribPointer(vertex_location, 3, GL_FLOAT, GL_FALSE, interleave_offset, interleave_offset ? &interleaved[0].vertex : &vertices[0]);
+		glVertexAttribPointer(vertex_location, 3, GL_FLOAT, GL_FALSE, spacing, interleaved_vbo_id ? &interleaved[0].vertex : &vertices[0]);
 
 	normal_location = -1;
-	if (normals.size() || interleave_offset)
+	if (normals.size() || spacing)
 	{
 		normal_location = sh->getAttribLocation("a_normal");
 		if (normal_location != -1)
@@ -101,15 +110,15 @@ void Mesh::enableBuffers(Shader* sh)
 			if (normals_vbo_id || interleaved_vbo_id)
 			{
 				glBindBuffer(GL_ARRAY_BUFFER, interleaved_vbo_id ? interleaved_vbo_id : normals_vbo_id);
-				glVertexAttribPointer(normal_location, 3, GL_FLOAT, GL_FALSE, interleave_offset, (void*)offset_normal);
+				glVertexAttribPointer(normal_location, 3, GL_FLOAT, GL_FALSE, spacing, (void*)offset_normal);
 			}
 			else
-				glVertexAttribPointer(normal_location, 3, GL_FLOAT, GL_FALSE, interleave_offset, interleave_offset ? &interleaved[0].normal : &normals[0]);
+				glVertexAttribPointer(normal_location, 3, GL_FLOAT, GL_FALSE, spacing, interleaved_vbo_id ? &interleaved[0].normal : &normals[0]);
 		}
 	}
 
 	uv_location = -1;
-	if (uvs.size() || interleave_offset)
+	if (uvs.size() || spacing)
 	{
 		uv_location = sh->getAttribLocation("a_uv");
 		if (uv_location != -1)
@@ -118,10 +127,10 @@ void Mesh::enableBuffers(Shader* sh)
 			if (uvs_vbo_id || interleaved_vbo_id)
 			{
 				glBindBuffer(GL_ARRAY_BUFFER, interleaved_vbo_id ? interleaved_vbo_id : uvs_vbo_id);
-				glVertexAttribPointer(uv_location, 2, GL_FLOAT, GL_FALSE, interleave_offset, (void*)offset_uv);
+				glVertexAttribPointer(uv_location, 2, GL_FLOAT, GL_FALSE, spacing, (void*)offset_uv);
 			}
 			else
-				glVertexAttribPointer(uv_location, 2, GL_FLOAT, GL_FALSE, interleave_offset, interleave_offset ? &interleaved[0].uv : &uvs[0]);
+				glVertexAttribPointer(uv_location, 2, GL_FLOAT, GL_FALSE, spacing, interleaved_vbo_id ? &interleaved[0].uv : &uvs[0]);
 		}
 	}
 
@@ -156,14 +165,6 @@ void Mesh::render(unsigned int primitive, Shader* sh, int submesh_id, int num_in
 	//bind buffers to attribute locations
 	enableBuffers(sh);
 
-	drawCall(primitive, submesh_id, num_instances );
-
-	//unbind them
-	disableBuffers(sh);
-}
-
-void Mesh::drawCall( int primitive, int submesh_id, int num_instances )
-{
 	int start = 0;
 	int size = vertices.size();
 	if (interleaved.size())
@@ -184,6 +185,9 @@ void Mesh::drawCall( int primitive, int submesh_id, int num_instances )
 
 	num_triangles_rendered += (size / 3) * (num_instances ? num_instances : 1);
 	num_meshes_rendered++;
+
+	//unbind them
+	disableBuffers(sh);
 }
 
 void Mesh::disableBuffers(Shader* shader)
@@ -203,11 +207,10 @@ void Mesh::renderInstanced(unsigned int primitive, Shader* shader, const Matrix4
 	if (!num_instances)
 		return;
 
-	bool foo = false;
 	if (instances_buffer_id == 0)
 		glGenBuffersARB(1, &instances_buffer_id);
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, instances_buffer_id);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, num_instances * sizeof(Matrix44), instanced_models, GL_DYNAMIC_DRAW_ARB);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, num_instances * sizeof(Matrix44), instanced_models, GL_STREAM_DRAW_ARB);
 
 	int attribLocation = shader->getAttribLocation("u_model");
 	assert(attribLocation != -1 && "shader must have attribute mat4 u_model (not a uniform)");
@@ -249,10 +252,10 @@ void Mesh::renderFixedPipeline(int primitive)
 	if (vertices_vbo_id || interleaved_vbo_id)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, interleave_offset ? interleaved_vbo_id : vertices_vbo_id);
-		glVertexAttribPointer(vertex_location, 3, GL_FLOAT, GL_FALSE, interleave_offset, 0);
+		glVertexPointer(3, GL_FLOAT, interleave_offset, 0);
 	}
 	else
-		glVertexAttribPointer(vertex_location, 3, GL_FLOAT, GL_FALSE, interleave_offset, interleave_offset ? &interleaved[0].vertex : &vertices[0]);
+		glVertexPointer(3, GL_FLOAT, interleave_offset, interleave_offset ? &interleaved[0].vertex : &vertices[0]);
 
 	if (normals.size() || interleave_offset)
 	{
@@ -260,10 +263,10 @@ void Mesh::renderFixedPipeline(int primitive)
 		if (normals_vbo_id || interleaved_vbo_id)
 		{
 			glBindBuffer(GL_ARRAY_BUFFER, interleaved_vbo_id ? interleaved_vbo_id : normals_vbo_id);
-			glVertexAttribPointer(normal_location, 3, GL_FLOAT, GL_FALSE, interleave_offset, (void*)offset_normal);
+			glNormalPointer(GL_FLOAT, interleave_offset, (void*)offset_normal);
 		}
 		else
-			glVertexAttribPointer(normal_location, 3, GL_FLOAT, GL_FALSE, interleave_offset, interleave_offset ? &interleaved[0].normal : &normals[0]);
+			glNormalPointer(GL_FLOAT, interleave_offset, interleave_offset ? &interleaved[0].normal : &normals[0]);
 	}
 
 	if (uvs.size() || interleave_offset)
@@ -272,10 +275,10 @@ void Mesh::renderFixedPipeline(int primitive)
 		if (uvs_vbo_id || interleaved_vbo_id)
 		{
 			glBindBuffer(GL_ARRAY_BUFFER, interleaved_vbo_id ? interleaved_vbo_id : uvs_vbo_id);
-			glVertexAttribPointer(uv_location, 2, GL_FLOAT, GL_FALSE, interleave_offset, (void*)offset_uv);
+			glTexCoordPointer(2, GL_FLOAT, interleave_offset, (void*)offset_uv);
 		}
 		else
-			glVertexAttribPointer(uv_location, 2, GL_FLOAT, GL_FALSE, interleave_offset, interleave_offset ? &interleaved[0].uv : &uvs[0]);
+			glTexCoordPointer(2, GL_FLOAT, interleave_offset, interleave_offset ? &interleaved[0].uv : &uvs[0]);
 	}
 
 	if (colors.size())
@@ -284,10 +287,10 @@ void Mesh::renderFixedPipeline(int primitive)
 		if (colors_vbo_id)
 		{
 			glBindBuffer(GL_ARRAY_BUFFER, colors_vbo_id);
-			glVertexAttribPointer(color_location, 4, GL_FLOAT, GL_FALSE, 0, NULL);
+			glColorPointer(4, GL_FLOAT, 0, NULL);
 		}
 		else
-			glVertexAttribPointer(color_location, 4, GL_FLOAT, GL_FALSE, 0, &colors[0]);
+			glColorPointer(4, GL_FLOAT, 0, &colors[0]);
 	}
 
 	int size = vertices.size();
@@ -366,31 +369,62 @@ void Mesh::uploadToVRAM()
 	//clear buffers to save memory
 }
 
-void Mesh::createCollisionModel()
+bool Mesh::createCollisionModel(bool is_static)
 {
-	CollisionModel3D* collision_model = newCollisionModel3D();
-	//collision_model->setTriangleNumber(vStrip.size() / 3);
-	for (unsigned int count = 0; count < vertices.size()/3; count++)
-		collision_model->addTriangle( vertices[count*3].x, vertices[count*3].y, vertices[count*3].z,
-									vertices[count*3+1].x, vertices[count*3+1].y, vertices[count*3+1].z,
-									vertices[count*3+2].x, vertices[count*3+2].y, vertices[count*3+2].z);
+	if (collision_model)
+		return true;
+
+	CollisionModel3D* collision_model = newCollisionModel3D(is_static);
+
+	if (interleaved.size()) //is interleaved
+	{
+		collision_model->setTriangleNumber(interleaved.size() / 3);
+		for (unsigned int i = 0; i < interleaved.size(); i+=3)
+		{
+			auto v1 = interleaved[i];
+			auto v2 = interleaved[i+1];
+			auto v3 = interleaved[i+2];
+			collision_model->addTriangle(v1.vertex.v, v2.vertex.v, v3.vertex.v);
+		}
+	}
+	else if (vertices.size()) //non interleaved
+	{
+		collision_model->setTriangleNumber(vertices.size() / 3);
+		for (unsigned int i = 0; i < vertices.size(); i+=3)
+		{
+			auto v1 = vertices[i];
+			auto v2 = vertices[i + 1];
+			auto v3 = vertices[i + 2];
+			collision_model->addTriangle(v1.v, v2.v, v3.v);
+		}
+	}
+	else
+	{
+		assert(0 && "mesh without vertices, cannot create collision model");
+		return false;
+	}
 	collision_model->finalize();
 	this->collision_model = collision_model;
+	return true;
 }
 
-bool Mesh::testRayCollision(Matrix44 model, Vector3 start, Vector3 front, Vector3& collision, Vector3& normal)
+bool Mesh::testRayCollision(Matrix44 model, Vector3 start, Vector3 front, Vector3& collision, Vector3& normal, float max_ray_dist, bool in_object_space )
 {
+	if (!this->collision_model)
+		if (!createCollisionModel())
+			return false;
+
 	CollisionModel3D* collision_model = (CollisionModel3D*)this->collision_model;
 	assert(collision_model && "CollisionModel3D must be created before using it, call createCollisionModel");
 
 	collision_model->setTransform( model.m );
-	if (collision_model->rayCollision( start.v , front.v, true) == false)
+	if (collision_model->rayCollision( start.v , front.v, true,0.0, max_ray_dist) == false)
 		return false;
 
-	collision_model->getCollisionPoint( collision.v, true );
+	collision_model->getCollisionPoint( collision.v, in_object_space);
 
 	float t1[9],t2[9];
-	collision_model->getCollidingTriangles(t1,t2,false);
+	collision_model->getCollidingTriangles(t1,t2, in_object_space);
 
 	Vector3 v1;
 	Vector3 v2;
@@ -447,7 +481,8 @@ bool Mesh::readBin(const char* filename)
 
 	stat(filename,&stbuffer);
 	f = fopen(filename,"rb");
-	if (f == NULL) return false;
+	if (f == NULL)
+		return false;
 
 	unsigned int size = stbuffer.st_size;
 	char* data = new char[size];
@@ -693,8 +728,6 @@ bool Mesh::loadASE(const char* filename)
 		normals[count*3+2]=Vector3(-nX,nZ,nY);
 	}
 
-	createCollisionModel();
-
 	return true;
 }
 
@@ -815,9 +848,6 @@ bool Mesh::loadOBJ(const char* filename)
 	radius = (float)fmax( aabb_max.length(), aabb_min.length() );
 
 	material_range.push_back( (unsigned int)(vertices.size() / 3.0) );
-
-	createCollisionModel();
-
 	return true;
 }
 
@@ -829,6 +859,10 @@ void Mesh::createCube()
 	uvs.resize(6 * 2 * 3);
 	memcpy(&vertices[0], _verts, sizeof(Vector3) * vertices.size());
 	memcpy(&uvs[0], _uvs, sizeof(Vector2) * uvs.size());
+
+	box.center.set(0, 0, 0);
+	box.halfsize.set(1, 1, 1);
+	radius = box.halfsize.length();
 }
 
 void Mesh::createWireBox()
@@ -836,6 +870,10 @@ void Mesh::createWireBox()
 	const float _verts[] = { -1,-1,-1,  1,-1,-1,  -1,1,-1,  1,1,-1, -1,-1,1,  1,-1,1, -1,1,1,  1,1,1,    -1,-1,-1, -1,1,-1, 1,-1,-1, 1,1,-1, -1,-1,1, -1,1,1, 1,-1,1, 1,1,1,   -1,-1,-1, -1,-1,1, 1,-1,-1, 1,-1,1, -1,1,-1, -1,1,1, 1,1,-1, 1,1,1 };
 	vertices.resize(24);
 	memcpy(&vertices[0], _verts, sizeof(Vector3) * vertices.size());
+
+	box.center.set(0, 0, 0);
+	box.halfsize.set(1,1,1);
+	radius = box.halfsize.length();
 }
 
 void Mesh::createQuad(float center_x, float center_y, float w, float h, bool flip_uvs)
@@ -903,7 +941,67 @@ void Mesh::createPlane(float size)
 	uvs.push_back(Vector2(0, 1));
 	uvs.push_back(Vector2(1, 1));
 	uvs.push_back(Vector2(0, 0));
+
+	box.center.set(0, 0, 0);
+	box.halfsize.set(size, 0, size);
+	radius = box.halfsize.length();
 }
+
+void Mesh::createSubdividedPlane(float size, int subdivisions, bool centered )
+{
+	double isize = size / (double)(subdivisions);
+	float hsize = centered ? size * -0.5 : 0;
+	double iuv = 1 / (double)(subdivisions * size);
+	vertices.clear();
+	for (int x = 0; x < subdivisions; ++x)
+	{
+		for (int z = 0; z < subdivisions; ++z)
+		{
+			vertices.push_back( Vector3(x * isize + hsize, 0, z * isize + hsize));
+			uvs.push_back(Vector2(x * iuv, z * iuv));
+			vertices.push_back( Vector3((x+1) * isize + hsize, 0, (z+1) * isize + hsize));
+			uvs.push_back(Vector2( (x+1) * iuv, (z+1) * iuv));
+			vertices.push_back(Vector3((x + 1) * isize + hsize, 0, z * isize + hsize));
+			uvs.push_back(Vector2((x + 1) * iuv, (z) * iuv));
+
+			vertices.push_back( Vector3(x* isize + hsize, 0, z* isize + hsize));
+			uvs.push_back(Vector2((x) * iuv, (z)* iuv));
+			vertices.push_back( Vector3(x* isize + hsize, 0, (z + 1)* isize + hsize));
+			uvs.push_back(Vector2((x) * iuv, (z+1)* iuv));
+			vertices.push_back(Vector3((x + 1)* isize + hsize, 0, (z + 1)* isize + hsize));
+			uvs.push_back(Vector2((x + 1) * iuv, (z+1)* iuv));
+		}
+	}
+	if(centered)
+		box.center.set(0.0, 0.0, 0.0);
+	else
+		box.center.set(size*0.5, 0.0, size*0.5);
+
+	box.halfsize.set(size*0.5, 0.0, size*0.5);
+	radius = box.halfsize.length();
+}
+
+void Mesh::displace(Texture* texture, float altitude)
+{
+	assert(texture && texture->info.data);
+	assert(uvs.size() && "cannot displace without uvs");
+
+	Texture::ImageInfo info = texture->info;
+
+	for (int i = 0; i < vertices.size(); ++i)
+	{
+		Vector3& vertex = vertices[i];
+		Vector2& uv = uvs[i];
+		float x = fmod( uv.x * info.width, info.width);
+		float y = fmod( uv.y * info.height, info.height);
+		float h = info.data[ int(y * info.width) * 4 + int(x) * 4] / 255.0f;
+		vertex.y = h * altitude;
+	}
+	box.center.y += altitude*0.5;
+	box.halfsize.y += altitude*0.5;
+	radius = box.halfsize.length();
+}
+
 
 void Mesh::createGrid(float dist)
 {
@@ -984,11 +1082,11 @@ Mesh* Mesh::Load(const char* filename)
 		return it->second;
 
 	Mesh* m = new Mesh();
-	m->name = filename;
+	std::string name = filename;
 
 	//detect format
 	char file_format = 0;
-	std::string ext = m->name.substr(m->name.size() - 4, 4);
+	std::string ext = name.substr(name.size() - 4, 4);
 	if (ext == ".ase" || ext == ".ASE")
 		file_format = FORMAT_ASE;
 	else if (ext == ".obj" || ext == ".OBJ")
@@ -1064,7 +1162,13 @@ Mesh* Mesh::Load(const char* filename)
 		m->writeBin(filename);
 		std::cout << "[OK]" << std::endl;
 	}
-	sMeshesLoaded[filename] = m;
+
+	m->registerMesh(name);
 	return m;
 }
 
+void Mesh::registerMesh( std::string name )
+{
+	this->name = name;
+	sMeshesLoaded[name] = this;
+}

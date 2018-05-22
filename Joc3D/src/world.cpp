@@ -2,7 +2,10 @@
 #include "shader.h"
 #include "includes.h"
 #include "entity.h"
+#include "mesh.h"
 #include <iostream>
+
+class Mesh;
 using namespace std;
 
 World::World()
@@ -10,7 +13,7 @@ World::World()
 	//Creamos el mundo
 	this->terrain = new Terrain("island");
 	this->sky = new Sky("sky");
-	this->sea = new Entity("sea");
+	this->sea = new Sea("sea");
 	//Creamos el avion Player
 	this->player = new Airplane("Spitfire", RAF_FIGHTER, Vector3(0,0,0), true);
 	//Creamos otros aviones
@@ -24,6 +27,7 @@ World::World()
 	this->planes.push_back(g3);
 	this->planes.push_back(g4);
 	this->planes.push_back(g5);
+
 }
 
 World::~World()
@@ -36,13 +40,13 @@ void World::render()
 	//World render
 	terrain->render();
 	sky->render();
-	//sea->render();
+	//sea->render();		//Error 
 
 	//Player render
 	player->render();
 
 	//Enenmies render
-	for (vector<Entity*>::iterator it = planes.begin(); it != planes.end(); ++it) {
+	for (vector<EntityMesh*>::iterator it = planes.begin(); it != planes.end(); ++it) {
 		(*it)->render();
 	}
 	
@@ -57,7 +61,18 @@ void World::update()
 	sea->update();
 	player->update();
 
-	for (vector<Entity*>::iterator it = planes.begin(); it != planes.end(); ++it) {
+	for (vector<EntityMesh*>::iterator it = planes.begin(); it != planes.end(); ++it) {
 		(*it)->update();
+	}
+	
+
+	//Detectar colision avion-terreno
+	Vector3 front = Camera::current->center - Camera::current->eye;
+	front.normalize();
+	Vector3 col_point;
+	Vector3 normal;
+
+	if (terrain->mesh->testRayCollision(terrain->model, Camera::current->eye, front, col_point, normal, 1, false)) {
+		cout << "Col" << endl;
 	}
 }

@@ -69,18 +69,18 @@ void Texture::create(unsigned int width, unsigned int height, unsigned int forma
 	assert(glGetError() == GL_NO_ERROR && "Error creating texture");
 }
 
-Texture* Texture::Load(const char* filename, bool mipmaps)
+Texture* Texture::Load(const char* filename, bool mipmaps, bool wrap, bool upload_to_vram)
 {
 	assert(filename);
 
-	//chec if loaded
+	//check if loaded
 	auto it = sTexturesLoaded.find(filename);
 	if (it != sTexturesLoaded.end())
 		return it->second;
 
 	//load it
 	Texture* texture = new Texture();
-	if (!texture->load(filename, mipmaps))
+	if (!texture->load(filename, mipmaps,wrap, upload_to_vram))
 	{
 		delete texture;
 		return NULL;
@@ -90,7 +90,7 @@ Texture* Texture::Load(const char* filename, bool mipmaps)
 	return texture;
 }
 
-bool Texture::load( const char* filename, bool mipmaps, bool upload_to_vram )
+bool Texture::load( const char* filename, bool mipmaps, bool wrap, bool upload_to_vram )
 {
 	std::string str = filename;
 	std::string ext = str.substr( str.size() - 4,4 );
@@ -144,8 +144,8 @@ bool Texture::load( const char* filename, bool mipmaps, bool upload_to_vram )
 	glBindTexture(this->texture_type, texture_id);	//we activate this id to tell opengl we are going to use this texture
 	glTexParameteri(this->texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	//set the min filter
 	glTexParameteri(this->texture_type, GL_TEXTURE_MIN_FILTER, this->mipmaps ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR); //set the mag filter
-	glTexParameteri(this->texture_type, GL_TEXTURE_WRAP_S, this->mipmaps ? GL_REPEAT : GL_CLAMP_TO_EDGE);
-	glTexParameteri(this->texture_type, GL_TEXTURE_WRAP_T, this->mipmaps ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+	glTexParameteri(this->texture_type, GL_TEXTURE_WRAP_S, this->mipmaps && wrap ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+	glTexParameteri(this->texture_type, GL_TEXTURE_WRAP_T, this->mipmaps && wrap ? GL_REPEAT : GL_CLAMP_TO_EDGE);
 	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4); //better quality but takes more resources
 
 	if(info->BGR)

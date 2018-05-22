@@ -44,15 +44,28 @@ public:
 
 };
 
+class Torpedo;
+
 class Airplane : public EntityMesh {
 public:
 
 	float speed;
 	float dirSpeed;
 	bool is_player;
+	Torpedo* torpedo;
 
 	Airplane(string name, AircraftType type, Vector3 mod, bool isPlayer);
 	void applyLookAt(Camera* camera);
+	void update();
+	void shootTorpedo();
+};
+
+class Torpedo : public EntityMesh {
+public:
+	float speed;
+	bool time_of_life;
+	bool is_on = true;
+	Torpedo(string name);
 	void update();
 };
 

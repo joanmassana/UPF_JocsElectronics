@@ -38,6 +38,10 @@ void EntityMesh::render()
 
 		//disable shader
 		current_shader->disable();
+
+		for (int i = 0; i < children.size(); i++) {
+			children[i]->render();
+		}
 	}
 
 }
@@ -67,6 +71,7 @@ Airplane::Airplane(string name, AircraftType type, Vector3 mod, bool isPlayer) :
 	this->is_player = isPlayer;
 	if (is_player) {
 		this->model.translate(0, 1000, 0);
+		cout << "Airplane model: " << model.getTranslation().x << ", " << model.getTranslation().y << ", " << model.getTranslation().z << endl;
 	}
 	else {
 		this->model.translate(mod.x, mod.y, mod.z);
@@ -74,8 +79,25 @@ Airplane::Airplane(string name, AircraftType type, Vector3 mod, bool isPlayer) :
 	
 	texture = Texture::Load(texture_name.c_str());
 	mesh = Mesh::Load(mesh_name.c_str());
+
+	this->torpedo = new Torpedo("t1");
+
+	this->addChild(torpedo);
+
 	
-	
+}
+
+void Airplane::shootTorpedo()
+{
+	if (!torpedo) {
+		return;
+	}
+	torpedo->time_of_life = 10;
+	torpedo->is_on = true;
+	//torpedo->parent->removeChild(torpedo);
+	//Game::instance->root.addChild(torpedo);
+
+	torpedo = NULL;
 }
 
 void Airplane::applyLookAt(Camera * camera)
@@ -125,7 +147,7 @@ Sky::Sky(string name) : EntityMesh(name)
 }
 
 void Sky::update()
-{
+{	
 	this->model.setTranslation(Camera::current->eye.x, Camera::current->eye.y, Camera::current->eye.z);
 }
 
@@ -140,4 +162,28 @@ Sea::Sea(string name) : EntityMesh(name)
 void Sea::update()
 {
 
+}
+
+Torpedo::Torpedo(string name) : EntityMesh(name)
+{
+	mesh_name = "data/assets/torpedo/torpedo.ASE";
+	texture_name = "data/assets/torpedo/torpedo.tga";
+	texture = Texture::Load(texture_name.c_str());
+	mesh = Mesh::Load(mesh_name.c_str());
+	speed = 0.15;
+	
+	model = getGlobalMatrix();
+	cout << "Torpedo model: " << model.getTranslation().x << ", " << model.getTranslation().y << ", " << model.getTranslation().z << endl;
+	//Matrix44 m = parent->model.inverse();		
+	//this->model = this->model * m;			//Pasamos a local
+	this->model.translate(0,-10,0);
+
+}
+
+void Torpedo::update()
+{
+	if (is_on && time_of_life > 0) {
+		model.translate(0, 0, -speed);
+
+	}
 }

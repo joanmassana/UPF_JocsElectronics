@@ -13,6 +13,7 @@ class Shader;
 // TEXTURE CLASS
 class Texture
 {
+public:
 	//a general struct to store all the information about a TGA file
 	typedef struct ImageInfo 
 	{
@@ -24,7 +25,7 @@ class Texture
 		bool BGR; //colors encoded as BGR instead of RGB (TGA work like this)
 	} TGAInfo;
 
-public:
+	//textures manager
 	static std::map<std::string, Texture*> sTexturesLoaded;
 
 	GLuint texture_id; // GL id to identify the texture in opengl, every texture must have its own id
@@ -37,26 +38,28 @@ public:
 	unsigned int texture_type; //GL_TEXTURE_2D, GL_TEXTURE_CUBE
 	bool mipmaps;
 
+	//original data info
 	ImageInfo info;
 
 	Texture();
 	Texture(unsigned int width, unsigned int height, unsigned int format = GL_RGB, unsigned int type = GL_UNSIGNED_BYTE, bool mipmaps = true, Uint8* data = NULL, unsigned int data_format = 0);
 	~Texture();
 
-	void create(unsigned int width, unsigned int height, unsigned int format = GL_RGB, unsigned int type = GL_UNSIGNED_BYTE, bool mipmaps = true, Uint8* data = NULL, unsigned data_format = 0);
+	void create(unsigned int width, unsigned int height, unsigned int format = GL_RGB, unsigned int type = GL_UNSIGNED_BYTE, bool mipmaps = true, Uint8* data = NULL, unsigned int data_format = 0);
 
 	void bind();
 	void unbind();
 	static void UnbindAll();
 
 	//load without using the manager
-	bool load(const char* filename, bool mipmaps = true, bool upload_to_vram = true);
+	bool load(const char* filename, bool mipmaps = true, bool wrap = true, bool upload_to_vram = true);
 
 	//load using the manager (caching loaded ones to avoid reloading them)
-	static Texture* Load(const char* filename, bool mipmaps = true);
+	static Texture* Load(const char* filename, bool mipmaps = true, bool wrap = true, bool upload_to_vram = true);
 
 	void generateMipmaps();
 
+	//show the texture on the current viewport
 	void toViewport( Shader* shader = NULL );
 
 protected:

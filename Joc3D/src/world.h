@@ -24,11 +24,11 @@ class World
 public:
 
 	//ATTRIBUTES
-	Entity* terrain;
-	Entity* sky;
-	Entity* sea;
+	EntityMesh* terrain;
+	EntityMesh* sky;
+	EntityMesh* sea;
 	Airplane* player;
-	std::vector<Entity*> planes;
+	std::vector<EntityMesh*> planes;
 
 	//float lod_distance_threshold;
 

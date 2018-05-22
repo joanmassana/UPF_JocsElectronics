@@ -10,6 +10,7 @@ using namespace std;
 Entity::Entity(string name)
 {
 	this->name = name;
+	parent = NULL;
 }
 
 Entity::~Entity()
@@ -31,22 +32,27 @@ void Entity::render()
 
 void Entity::update()
 {
-
+	for (int i = 0; i < children.size(); i++) {
+		children[i]->update();
+	}
 }
 
 void Entity::addChild(Entity * ent)
 {
+	ent->parent = this;
+	children.push_back(ent);
 }
 
 void Entity::removeChild(Entity * ent)
 {
+
 }
 
 Matrix44 Entity::getGlobalMatrix()
 {
 	if (parent) {
-		return model * parent->getGlobalMatrix();
+		return this->model * parent->getGlobalMatrix();
 	}
-	return model;
+	return this->model;
 }
 
