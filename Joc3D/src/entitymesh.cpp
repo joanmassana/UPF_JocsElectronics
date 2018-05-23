@@ -43,7 +43,6 @@ void EntityMesh::render()
 			children[i]->render();
 		}
 	}
-
 }
 
 void EntityMesh::update(float dt)
@@ -57,14 +56,14 @@ Airplane::Airplane(string name, AircraftType type, Vector3 mod, bool isPlayer) :
 	case RAF_FIGHTER:
 		mesh_name = "data/assets/spitfire/spitfire.ASE";
 		texture_name = "data/assets/spitfire/spitfire_color_spec.tga";
-		speed = 0.2;
-		dirSpeed = 0.2;
+		speed = 50;
+		dirSpeed = 1;
 		break;
 	case LUFTWAFFE_BOMBER:
 		mesh_name = "data/assets/bomber/bomber_axis.ASE";
 		texture_name = "data/assets/bomber/bomber_axis.tga";
-		speed = 0.15;
-		dirSpeed = 0.12;
+		speed = 35;
+		dirSpeed = 0.8;
 		break;
 	}
 
@@ -127,12 +126,12 @@ void Airplane::checkInput(float dt)
 	//Controles
 	if (Input::isKeyPressed(SDL_SCANCODE_LSHIFT)) speed *= 10; //move faster with left shift
 
-	if (Input::isKeyPressed(SDL_SCANCODE_E)) this->model.rotate((float)(dirSpeed / 4 * DEG2RAD), Vector3(0.0f, 1.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_Q)) this->model.rotate((float)(dirSpeed / 4 * DEG2RAD), Vector3(0.0f, -1.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_UP)) this->model.rotate((float)(dirSpeed * DEG2RAD), Vector3(1.0f, 0.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) this->model.rotate((float)(dirSpeed * DEG2RAD), Vector3(-1.0f, 0.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_LEFT)) this->model.rotate((float)(2 * dirSpeed * DEG2RAD), Vector3(0.0f, 0.0f, -1.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) this->model.rotate((float)(2 * dirSpeed * DEG2RAD), Vector3(0.0f, 0.0f, 1.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_E)) this->model.rotate(dt * dirSpeed, Vector3(0.0f, 1.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_Q)) this->model.rotate(dt * dirSpeed, Vector3(0.0f, -1.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_UP)) this->model.rotate(dt * dirSpeed, Vector3(1.0f, 0.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) this->model.rotate(dt * dirSpeed, Vector3(-1.0f, 0.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_LEFT)) this->model.rotate(dt * dirSpeed, Vector3(0.0f, 0.0f, -1.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) this->model.rotate(dt * dirSpeed, Vector3(0.0f, 0.0f, 1.0f));
 }
 
 void Airplane::shootTorpedo()
@@ -155,8 +154,9 @@ void Airplane::applyLookAt(Camera * camera)
 
 void Airplane::update(float dt)
 {
+	cout << dt << endl;
 	//Movimiento hacia delante
-	model.translate(0, 0, -speed);
+	model.translate(0, 0, -speed * dt);
 
 	if (is_player) {
 		//Camara se mueve con el avión
