@@ -37,8 +37,8 @@ public:
 	virtual ~World();
 
 	//METHODS
-	virtual void render();
-	virtual void update();
+	virtual void render(float dt);
+	virtual void update(float dt);
 
 };
 

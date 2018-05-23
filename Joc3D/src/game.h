@@ -28,15 +28,17 @@ public:
 	float elapsed_time;
 	int fps;
 	bool must_exit;
+	bool camera12;
 
 	//some vars
 	Camera* camera; //our global camera
+	Camera* camera2; //our global camera
 	bool mouse_locked; //tells if the mouse is locked (not seen)
 
 	Game( int window_width, int window_height, SDL_Window* window );
 
 	//main functions
-	void render( void );
+	void render(  );
 	void update( double dt );
 
 	//events

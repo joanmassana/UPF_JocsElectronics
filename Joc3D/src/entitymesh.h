@@ -40,7 +40,7 @@ public:
 
 	//METHODS
 	virtual void render();
-	virtual void update();
+	virtual void update(float dt);
 
 };
 
@@ -54,10 +54,14 @@ public:
 	bool is_player;
 	Torpedo* torpedo;
 
+	Entity* target; //BLOQUE IA
+
 	Airplane(string name, AircraftType type, Vector3 mod, bool isPlayer);
 	void applyLookAt(Camera* camera);
-	void update();
+	void update(float dt);
 	void shootTorpedo();
+	void checkIA(float dt); //BLOQUE IA
+	void checkInput(float dt); //BLOQUE IA
 };
 
 class Torpedo : public EntityMesh {
@@ -66,28 +70,28 @@ public:
 	bool time_of_life;
 	bool is_on = true;
 	Torpedo(string name);
-	void update();
+	void update(float dt);
 };
 
 class Terrain : public EntityMesh {
 public:
 
 	Terrain(string name);
-	void update();
+	void update(float dt);
 };
 
 class Sky : public EntityMesh {
 public:
 
 	Sky(string name);
-	void update();
+	void update(float dt);
 };
 
 class Sea : public EntityMesh {
 public:
 
 	Sea(string name);
-	void update();
+	void update(float dt);
 };
 
 

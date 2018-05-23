@@ -35,7 +35,7 @@ World::~World()
 
 }
 
-void World::render()
+void World::render(float dt)
 {
 	//World render
 	terrain->render();
@@ -54,15 +54,15 @@ void World::render()
 
 }
 
-void World::update()
+void World::update(float dt)
 {
-	terrain->update();
-	sky->update();
-	sea->update();
-	player->update();
+	terrain->update(dt);
+	sky->update(dt);
+	sea->update(dt);
+	player->update(dt);
 
 	for (vector<EntityMesh*>::iterator it = planes.begin(); it != planes.end(); ++it) {
-		(*it)->update();
+		(*it)->update(dt);
 	}
 	
 

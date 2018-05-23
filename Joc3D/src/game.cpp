@@ -35,11 +35,18 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	glEnable( GL_DEPTH_TEST ); //check the occlusions using the Z buffer
 
 	world = new World();
+	camera12 = true; 
 
 	//create our camera
 	camera = new Camera();
 	camera->lookAt(Vector3(0.f, 500.f, 100.f),Vector3(0.f,400.f,0.f), Vector3(0.f,1.f,0.f)); //position the camera and point to 0,0,0
 	camera->setPerspective(70.f,window_width/(float)window_height,0.1f,10000.f); //set the projection, we want to be perspective
+
+	camera2 = new Camera();
+	camera2->lookAt(Vector3(0.f, 500.f, 100.f), Vector3(0.f, 400.f, 0.f), Vector3(0.f, 1.f, 0.f)); //position the camera and point to 0,0,0
+	camera2->setPerspective(70.f, window_width / (float)window_height, 0.1f, 10000.f); //set the projection, we want to be perspective
+
+
 
 	//hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
@@ -49,7 +56,7 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 void Game::render(void)
 {
 	//set the clear color (the background color)
-	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClearColor(31.0/255.0, 51.0/255.0, 61.0/255.0, 1.0);
 
 	// Clear the window and the depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -63,7 +70,7 @@ void Game::render(void)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
    
-	world->render();
+	world->render(elapsed_time);
    
 	//Draw out world
 	drawGrid();
@@ -77,18 +84,18 @@ void Game::render(void)
 
 void Game::update(double seconds_elapsed)
 {
-	world->update();
+	world->update(seconds_elapsed);
 	float speed = seconds_elapsed * 100; //the speed is defined by the seconds_elapsed so it goes constant
 
 	//example
 	angle += (float)seconds_elapsed * 10.0f;
 
 	//mouse input to rotate the cam
-	if ((Input::mouse_state & SDL_BUTTON_LEFT) || mouse_locked ) //is left button pressed?
+	/*if ((Input::mouse_state & SDL_BUTTON_LEFT) || mouse_locked ) //is left button pressed?
 	{
 		camera->rotate(Input::mouse_delta.x * 0.005f, Vector3(0.0f,-1.0f,0.0f));
 		camera->rotate(Input::mouse_delta.y * 0.005f, camera->getLocalVector( Vector3(-1.0f,0.0f,0.0f)));
-	}
+	}*/
 
 	//async input to move the camera around
 	//if (Input::isKeyPressed(SDL_SCANCODE_LSHIFT) ) speed *= 10; //move faster with left shift
@@ -99,8 +106,15 @@ void Game::update(double seconds_elapsed)
 	if (Input::wasKeyPressed(SDL_SCANCODE_C)) {
 		cout << "This should change camera" << endl;
 		// Change Camera::current to another
+		camera12 = !camera12;
 	}
 
+	if (Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_UP)) camera2->move(Vector3(0.0f, 0.0f, 1.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) camera2->move(Vector3(0.0f, 0.0f, -1.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_LEFT)) camera2->move(Vector3(1.0f, 0.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) camera2->move(Vector3(-1.0f, 0.0f, 0.0f));
+
+	
 	//to navigate with the mouse fixed in the middle
 	if (mouse_locked)
 		Input::centerMouse();
