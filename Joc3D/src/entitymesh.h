@@ -12,6 +12,7 @@ using namespace std;
 
 enum AircraftType { RAF_FIGHTER, LUFTWAFFE_BOMBER };
 
+
 class Shader;
 class Texture;
 class Mesh;
@@ -35,7 +36,7 @@ public:
 	//float lod_distance_threshold;
 
 	//CONSTRUCTORS
-	EntityMesh(string name);
+	EntityMesh();
 	virtual ~EntityMesh();
 
 	//METHODS
@@ -54,9 +55,11 @@ public:
 	bool is_player;
 	Torpedo* torpedo;
 
+	static vector<Airplane*> planes;
+
 	Entity* target; //BLOQUE IA
 
-	Airplane(string name, AircraftType type, Vector3 mod, bool isPlayer);
+	Airplane(AircraftType type, Vector3 mod, bool isPlayer);
 	void applyLookAt(Camera* camera);
 	void update(float dt);
 	void shootTorpedo();
@@ -68,29 +71,29 @@ class Torpedo : public EntityMesh {
 public:
 	float speed;
 	bool time_of_life;
-	bool is_on = true;
-	Torpedo(string name);
+	bool is_on;
+	Torpedo();
 	void update(float dt);
 };
 
 class Terrain : public EntityMesh {
 public:
 
-	Terrain(string name);
+	Terrain();
 	void update(float dt);
 };
 
 class Sky : public EntityMesh {
 public:
 
-	Sky(string name);
+	Sky();
 	void update(float dt);
 };
 
 class Sea : public EntityMesh {
 public:
 
-	Sea(string name);
+	Sea();
 	void update(float dt);
 };
 

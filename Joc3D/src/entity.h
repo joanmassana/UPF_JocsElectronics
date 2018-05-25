@@ -23,22 +23,21 @@ class Entity
 public:
 
 	//ATTRIBUTES
-	std::string name;
 	Matrix44 model;			//or transform
 
 	Entity* parent;
 	std::vector<Entity*> children;
-	std::vector<Entity*> to_destroy;
+	static std::vector<Entity*> to_destroy;   
 
 	//CONSTRUCTORS
-	Entity(string name);
+	Entity();
 	virtual ~Entity();
 
 	//METHODS
 	void destroy();
 
 	virtual void render();
-	virtual void update();
+	virtual void update(float dt);
 
 	void addChild(Entity* ent);
 	void removeChild(Entity* ent);

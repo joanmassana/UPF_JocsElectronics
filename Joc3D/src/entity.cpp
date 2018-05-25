@@ -7,20 +7,29 @@
 #include <iostream>
 using namespace std;
 
-Entity::Entity(string name)
+
+std::vector<Entity*> Entity::to_destroy;
+
+Entity::Entity()
 {
-	this->name = name;
 	parent = NULL;
 }
 
 Entity::~Entity()
 {
-
+	if (!parent)
+		return;
+	for (vector<Entity*>::iterator it = parent->children.begin(); it != parent->children.end(); ++it) {
+		if (it != parent->children.end()) {
+			parent->children.erase(it);
+		}
+	}
 }
 
 void Entity::destroy()
 {
 	to_destroy.push_back(this);
+	//destroy
 }
 
 void Entity::render() 
@@ -30,10 +39,10 @@ void Entity::render()
 	}
 }
 
-void Entity::update()
+void Entity::update(float dt)
 {
 	for (int i = 0; i < children.size(); i++) {
-		children[i]->update();
+		children[i]->update(dt);
 	}
 }
 
@@ -45,7 +54,7 @@ void Entity::addChild(Entity * ent)
 
 void Entity::removeChild(Entity * ent)
 {
-
+	//children.pop(ent);
 }
 
 Matrix44 Entity::getGlobalMatrix()

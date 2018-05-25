@@ -3,31 +3,33 @@
 #include "includes.h"
 #include "entity.h"
 #include "mesh.h"
+#include "entitymesh.h"
 #include <iostream>
 
-class Mesh;
+class Mesh; 
+class EntityMesh;
+
 using namespace std;
 
 World::World()
 {
+	//Root
+	this->root = new Entity();
 	//Creamos el mundo
-	this->terrain = new Terrain("island");
-	this->sky = new Sky("sky");
-	this->sea = new Sea("sea");
+	this->terrain = new Terrain();
+	root->addChild(terrain);
+	this->sky = new Sky();
+	root->addChild(sky);
+	this->sea = new Sea();
+	root->addChild(sea);
 	//Creamos el avion Player
-	this->player = new Airplane("Spitfire", RAF_FIGHTER, Vector3(0,0,0), true);
+	this->player = new Airplane(RAF_FIGHTER, Vector3(0,0,0), true);
+	root->addChild(player);
 	//Creamos otros aviones
-	Airplane* g1 = new Airplane("Heinkel", LUFTWAFFE_BOMBER, Vector3(-100, 700, -160), false);
-	Airplane* g2 = new Airplane("Heinkel", LUFTWAFFE_BOMBER, Vector3(-50, 700, -180), false);
-	Airplane* g3 = new Airplane("Heinkel", LUFTWAFFE_BOMBER, Vector3(0, 700, -200), false);
-	Airplane* g4 = new Airplane("Heinkel", LUFTWAFFE_BOMBER, Vector3(50, 700, -180), false);
-	Airplane* g5 = new Airplane("Heinkel", LUFTWAFFE_BOMBER, Vector3(100, 700, -160), false);
-	this->planes.push_back(g1);
-	this->planes.push_back(g2);
-	this->planes.push_back(g3);
-	this->planes.push_back(g4);
-	this->planes.push_back(g5);
-
+	for (int i = 0; i < 50; i++) {
+		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(-100 + i*50, 700, -160), false);
+		planes.push_back(airplane);
+	}
 }
 
 World::~World()
@@ -38,15 +40,10 @@ World::~World()
 void World::render(float dt)
 {
 	//World render
-	terrain->render();
-	sky->render();
-	//sea->render();		//Error 
-
-	//Player render
-	player->render();
+	root->render();
 
 	//Enenmies render
-	for (vector<EntityMesh*>::iterator it = planes.begin(); it != planes.end(); ++it) {
+	for (auto it = planes.begin(); it != planes.end(); ++it) {
 		(*it)->render();
 	}
 	
@@ -56,12 +53,9 @@ void World::render(float dt)
 
 void World::update(float dt)
 {
-	terrain->update(dt);
-	sky->update(dt);
-	sea->update(dt);
-	player->update(dt);
+	root->update(dt);
 
-	for (vector<EntityMesh*>::iterator it = planes.begin(); it != planes.end(); ++it) {
+	for (auto it = planes.begin(); it != planes.end(); ++it) {
 		(*it)->update(dt);
 	}
 	

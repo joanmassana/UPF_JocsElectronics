@@ -8,9 +8,11 @@
 #include <iostream>
 using namespace std;
 
-EntityMesh::EntityMesh(string name): Entity(name)
+class World;
+vector<Airplane*> Airplane::planes;
+
+EntityMesh::EntityMesh(): Entity()
 {
-	this->name = name;
 	shader = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
 }
 
@@ -50,20 +52,21 @@ void EntityMesh::update(float dt)
 
 }
 
-Airplane::Airplane(string name, AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh(name)
+Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 {	
+	planes.push_back(this);
 	switch (type) {
 	case RAF_FIGHTER:
 		mesh_name = "data/assets/spitfire/spitfire.ASE";
 		texture_name = "data/assets/spitfire/spitfire_color_spec.tga";
 		speed = 50;
-		dirSpeed = 1;
+		dirSpeed = 2;
 		break;
 	case LUFTWAFFE_BOMBER:
 		mesh_name = "data/assets/bomber/bomber_axis.ASE";
 		texture_name = "data/assets/bomber/bomber_axis.tga";
 		speed = 35;
-		dirSpeed = 0.8;
+		dirSpeed = 1;
 		break;
 	}
 
@@ -80,31 +83,39 @@ Airplane::Airplane(string name, AircraftType type, Vector3 mod, bool isPlayer) :
 	mesh = Mesh::Load(mesh_name.c_str());
 	target = NULL; //BLOQUE IA
 
-	this->torpedo = new Torpedo("t1");
+	this->torpedo = new Torpedo();
 	this->addChild(torpedo);
-	
 }
+
+
 
 void Airplane::checkIA(float dt) //BLOQUE IA
 {
 	if (!target)
 		return;
 
+	//Rotar hacia el enemigo
 	Vector3 pos = target->getGlobalMatrix().getTranslation();
 	Vector3 target_pos = target->getGlobalMatrix().getTranslation();
+	Vector3 front = getGlobalMatrix().rotateVector(Vector3(0,0,-1));
+	if (pos.y < 500) {
+		Vector3 newpos = pos + front *  100;
+		pos.y = 500;
+		target_pos = newpos;
+	}
 	Vector3 to_target = target_pos - pos;
-
 	float dist = (pos - target_pos).length();
 	if (abs(dist) < 0.00001)
 		return;
 
 	to_target.normalize();
 
-	Vector3 front = getGlobalMatrix().rotateVector(Vector3(0, 0, -1));
 	front.normalize();
+
 	float FdotT = front.dot(to_target);
 	float angle = acos(FdotT);
 	if (abs(angle) < 0.00001)
+		//Alineado->Disparar?
 		return;
 
 	Vector3 axis = front.cross(to_target);
@@ -126,12 +137,13 @@ void Airplane::checkInput(float dt)
 	//Controles
 	if (Input::isKeyPressed(SDL_SCANCODE_LSHIFT)) speed *= 10; //move faster with left shift
 
-	if (Input::isKeyPressed(SDL_SCANCODE_E)) this->model.rotate(dt * dirSpeed, Vector3(0.0f, 1.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_Q)) this->model.rotate(dt * dirSpeed, Vector3(0.0f, -1.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_UP)) this->model.rotate(dt * dirSpeed, Vector3(1.0f, 0.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) this->model.rotate(dt * dirSpeed, Vector3(-1.0f, 0.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_LEFT)) this->model.rotate(dt * dirSpeed, Vector3(0.0f, 0.0f, -1.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) this->model.rotate(dt * dirSpeed, Vector3(0.0f, 0.0f, 1.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_E)) this->model.rotate(dt * dirSpeed/5, Vector3(0.0f, 1.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_Q)) this->model.rotate(dt * dirSpeed/5, Vector3(0.0f, -1.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_UP)) this->model.rotate(dt * dirSpeed/2, Vector3(1.0f, 0.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) this->model.rotate(dt * dirSpeed/2, Vector3(-1.0f, 0.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_LEFT)) this->model.rotate(dt * dirSpeed/2, Vector3(0.0f, 0.0f, -1.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) this->model.rotate(dt * dirSpeed/2, Vector3(0.0f, 0.0f, 1.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_SPACE)) this->shootTorpedo();
 }
 
 void Airplane::shootTorpedo()
@@ -142,9 +154,8 @@ void Airplane::shootTorpedo()
 	torpedo->time_of_life = 10;
 	torpedo->is_on = true;
 	//torpedo->parent->removeChild(torpedo);
-	//Game::instance->root.addChild(torpedo);
 
-	torpedo = NULL;
+	//torpedo = NULL;
 }
 
 void Airplane::applyLookAt(Camera * camera)
@@ -154,7 +165,6 @@ void Airplane::applyLookAt(Camera * camera)
 
 void Airplane::update(float dt)
 {
-	cout << dt << endl;
 	//Movimiento hacia delante
 	model.translate(0, 0, -speed * dt);
 
@@ -162,8 +172,7 @@ void Airplane::update(float dt)
 		//Camara se mueve con el avión
 		if(Game::instance->camera12 == true) {
 			checkInput(dt);
-			Camera::current->lookAt(model*Vector3(0, 1.5, 10), model*Vector3(0, 0, -10), model.rotateVector(Vector3(0, 1, 0)));
-			
+			Camera::current->lookAt(model*Vector3(0, 1.5, 10), model*Vector3(0, 0, -10), model.rotateVector(Vector3(0, 1, 0)));			
 		}
 
 		if (Game::instance->camera12 == false) {
@@ -179,9 +188,12 @@ void Airplane::update(float dt)
 	else {
 		checkIA(dt);
 	}
+	for (int i = 0; i < children.size(); i++) {
+		children[i]->update(dt);
+	}
 }
 
-Terrain::Terrain(string name) : EntityMesh(name)
+Terrain::Terrain() : EntityMesh()
 {
 	mesh_name = "data/assets/island/island.ASE";
 	texture_name = "data/assets/island/island_color.tga";
@@ -194,7 +206,7 @@ void Terrain::update(float dt)
 
 }
 
-Sky::Sky(string name) : EntityMesh(name)
+Sky::Sky() : EntityMesh()
 {
 	mesh_name = "data/assets/cielo/cielo.ASE";
 	texture_name = "data/assets/cielo/cielo.tga";
@@ -207,7 +219,7 @@ void Sky::update(float dt)
 	this->model.setTranslation(Camera::current->eye.x, Camera::current->eye.y, Camera::current->eye.z);
 }
 
-Sea::Sea(string name) : EntityMesh(name)
+Sea::Sea() : EntityMesh()
 {
 	mesh_name = "data/assets/island/water_deep.ASE";
 	texture_name = "data/assets/island/water_deep.tga";
@@ -220,7 +232,7 @@ void Sea::update(float dt)
 
 }
 
-Torpedo::Torpedo(string name) : EntityMesh(name)
+Torpedo::Torpedo() : EntityMesh()
 {
 	mesh_name = "data/assets/torpedo/torpedo.ASE";
 	texture_name = "data/assets/torpedo/torpedo.tga";
@@ -228,12 +240,13 @@ Torpedo::Torpedo(string name) : EntityMesh(name)
 	mesh = Mesh::Load(mesh_name.c_str());
 	speed = 0.15;
 	model.translate(0,-1,0);	
+	is_on = false;
 }
 
 void Torpedo::update(float dt)
 {
 	if (is_on && time_of_life > 0) {
-		model.translate(0, 0, -speed);
-
+		model.translate(0, -dt*10, 0);
+		time_of_life -= dt;
 	}
 }

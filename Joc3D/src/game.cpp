@@ -73,7 +73,7 @@ void Game::render(void)
 	world->render(elapsed_time);
    
 	//Draw out world
-	drawGrid();
+	//drawGrid();
 
 	//render the FPS
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
