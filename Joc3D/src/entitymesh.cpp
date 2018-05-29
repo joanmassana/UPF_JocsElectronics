@@ -5,6 +5,7 @@
 #include "includes.h"
 #include "texture.h"
 #include "mesh.h"
+#include "world.h"
 #include <iostream>
 using namespace std;
 
@@ -88,7 +89,6 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 }
 
 
-
 void Airplane::checkIA(float dt) //BLOQUE IA
 {
 	if (!target)
@@ -155,9 +155,10 @@ void Airplane::shootTorpedo()
 	}
 	torpedo->time_of_life = 10;
 	torpedo->is_on = true;
-	//torpedo->parent->removeChild(torpedo);
 
-	//torpedo = NULL;
+	World::root->addChild(torpedo);	
+	this->removeChild(torpedo);
+	cout << "Torpedo fired" << endl;
 }
 
 void Airplane::applyLookAt(Camera * camera)

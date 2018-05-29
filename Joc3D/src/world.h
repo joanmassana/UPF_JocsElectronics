@@ -24,7 +24,7 @@ class World
 public:
 
 	//ATTRIBUTES
-	Entity* root;
+	static Entity* root;
 	EntityMesh* terrain;
 	EntityMesh* sky;
 	EntityMesh* sea;

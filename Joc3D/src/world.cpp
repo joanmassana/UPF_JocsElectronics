@@ -11,10 +11,12 @@ class EntityMesh;
 
 using namespace std;
 
+Entity* World::root = NULL;
+
 World::World()
 {
 	//Root
-	this->root = new Entity();
+	root = new Entity();
 	//Creamos el mundo
 	this->terrain = new Terrain();
 	root->addChild(terrain);

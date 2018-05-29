@@ -54,7 +54,12 @@ void Entity::addChild(Entity * ent)
 
 void Entity::removeChild(Entity * ent)
 {
-	//children.pop(ent);
+	auto it = find(children.begin(), children.end(), ent);
+	if (it != parent->children.end()) {
+		children.erase(it);
+		ent->parent = NULL;
+	}	
+	assert(it == parent->children.end());
 }
 
 Matrix44 Entity::getGlobalMatrix()
