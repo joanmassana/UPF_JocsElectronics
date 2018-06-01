@@ -20,15 +20,21 @@ World::World()
 	//Creamos el mundo
 	this->terrain = new Terrain();
 	root->addChild(terrain);
+
 	this->sky = new Sky();
 	root->addChild(sky);
+
 	this->sea = new Sea();
 	root->addChild(sea);
+
+	
+
+
 	//Creamos el avion Player
 	this->player = new Airplane(RAF_FIGHTER, Vector3(0,0,0), true);
 	root->addChild(player);
 	//Creamos otros aviones
-	for (int i = 0; i < 50; i++) {
+	for (int i = 0; i < 2; i++) {
 		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(-100 + i*50, 700, -160), false);
 		planes.push_back(airplane);
 	}
@@ -49,6 +55,11 @@ void World::render(float dt)
 		(*it)->render();
 	}
 	
+	//BulletManager::instance.render();
+	
+	
+
+
 	/* DISTANCE CULLING - Slides Optimización Render */
 
 }
@@ -59,8 +70,7 @@ void World::update(float dt)
 
 	for (auto it = planes.begin(); it != planes.end(); ++it) {
 		(*it)->update(dt);
-	}
-	
+	}	
 
 	//Detectar colision avion-terreno
 	Vector3 front = Camera::current->center - Camera::current->eye;
@@ -71,4 +81,6 @@ void World::update(float dt)
 	if (terrain->mesh->testRayCollision(terrain->model, Camera::current->eye, front, col_point, normal, 1, false)) {
 		cout << "Col" << endl;
 	}
+
+	BulletManager::instance.update(dt);
 }

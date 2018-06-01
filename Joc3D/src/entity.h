@@ -43,6 +43,10 @@ public:
 	void removeChild(Entity* ent);
 
 	Matrix44 getGlobalMatrix();
+
+
+
+
 };
 
 

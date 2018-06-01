@@ -54,7 +54,7 @@ public:
 	float dirSpeed;
 	bool is_player;
 	Torpedo* torpedo;
-
+	
 	static vector<Airplane*> planes;
 
 	Entity* target; //BLOQUE IA
@@ -62,7 +62,8 @@ public:
 	Airplane(AircraftType type, Vector3 mod, bool isPlayer);
 	void applyLookAt(Camera* camera);
 	void update(float dt);
-	void shootTorpedo();
+	void bomb();
+	void shootGun();
 	void checkIA(float dt); //BLOQUE IA
 	void checkInput(float dt); //BLOQUE IA
 };
@@ -70,7 +71,7 @@ public:
 class Torpedo : public EntityMesh {
 public:
 	float speed;
-	bool time_of_life;
+	float time_of_life;
 	bool is_on;
 	Torpedo();
 	void update(float dt);
@@ -94,6 +95,28 @@ class Sea : public EntityMesh {
 public:
 
 	Sea();
+	void update(float dt);
+};
+
+struct Bullet {
+	char type;
+	Vector3 position;
+	Vector3 velocity;
+	Airplane* author;
+	float ttl;
+};
+
+const unsigned int max_bullets = 24;
+
+class BulletManager {
+public:
+	Bullet bullets[max_bullets];
+	static BulletManager instance;
+
+	BulletManager();
+	void createBullet(Vector3 pos, Vector3 vel, char type, Airplane* author, float ttl);
+
+	void render();
 	void update(float dt);
 };
 

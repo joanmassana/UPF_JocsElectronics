@@ -5,6 +5,7 @@
 #include "texture.h"
 #include "mesh.h"
 #include <iostream>
+#include <algorithm>
 using namespace std;
 
 
@@ -46,25 +47,27 @@ void Entity::update(float dt)
 	}
 }
 
-void Entity::addChild(Entity * ent)
+void Entity::addChild(Entity* ent)
 {
 	ent->parent = this;
 	children.push_back(ent);
 }
 
-void Entity::removeChild(Entity * ent)
+void Entity::removeChild(Entity* ent)
 {
-	auto it = find(children.begin(), children.end(), ent);
-	if (it != parent->children.end()) {
+	vector<Entity*>::iterator it = find(children.begin(), children.end(), ent);
+	if (it != children.end()) {
 		children.erase(it);
-		ent->parent = NULL;
-	}	
-	assert(it == parent->children.end());
+		ent->parent = NULL;	
+		return;
+	}
+	assert(it == children.end());
+
 }
 
 Matrix44 Entity::getGlobalMatrix()
 {
-	if (parent) {
+	if (parent != NULL) {
 		return this->model * parent->getGlobalMatrix();
 	}
 	return this->model;

@@ -7,10 +7,12 @@
 #include "mesh.h"
 #include "world.h"
 #include <iostream>
+#include <algorithm>
 using namespace std;
 
 class World;
 vector<Airplane*> Airplane::planes;
+BulletManager BulletManager::instance;
 
 EntityMesh::EntityMesh(): Entity()
 {
@@ -66,15 +68,18 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 	case LUFTWAFFE_BOMBER:
 		mesh_name = "data/assets/bomber/bomber_axis.ASE";
 		texture_name = "data/assets/bomber/bomber_axis.tga";
-		speed = 35;
+		speed = 40;
 		dirSpeed = 1;
 		break;
 	}
 
+	this->target = new Entity();
+	this->target->model.translate(5000.0, 5000.0, -5000.0);
+	cout << "Target is: " << target->getGlobalMatrix().getTranslation().x << ", " << target->getGlobalMatrix().getTranslation().y << ", " << target->getGlobalMatrix().getTranslation().z << endl;
+
 	this->is_player = isPlayer;
 	if (is_player) {
 		this->model.translate(0, 1000, 0);
-		cout << "Airplane model: " << model.getTranslation().x << ", " << model.getTranslation().y << ", " << model.getTranslation().z << endl;
 	}
 	else {
 		this->model.translate(mod.x, mod.y, mod.z);
@@ -82,88 +87,9 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 	
 	texture = Texture::Load(texture_name.c_str());
 	mesh = Mesh::Load(mesh_name.c_str());
-	target = NULL; //BLOQUE IA
-
+	
 	this->torpedo = new Torpedo();
 	this->addChild(torpedo);
-}
-
-
-void Airplane::checkIA(float dt) //BLOQUE IA
-{
-	if (!target)
-		return;
-
-	//Rotar hacia el enemigo
-	Vector3 pos = target->getGlobalMatrix().getTranslation();
-	Vector3 target_pos = target->getGlobalMatrix().getTranslation();
-	Vector3 front = getGlobalMatrix().rotateVector(Vector3(0,0,-1));
-	if (pos.y < 500) {
-		Vector3 newpos = pos + front *  100;
-		pos.y = 500;
-		target_pos = newpos;
-	}
-	Vector3 to_target = target_pos - pos;
-	float dist = (pos - target_pos).length();
-	if (abs(dist) < 0.00001)
-		return;
-
-	to_target.normalize();
-
-	front.normalize();
-
-	float FdotT = front.dot(to_target);
-	float angle = acos(FdotT);
-	if (abs(angle) < 0.00001)
-		//Alineado->Disparar?
-		return;
-
-	Vector3 axis = front.cross(to_target);
-	axis.normalize();
-
-	Matrix44 im = getGlobalMatrix();
-	im.inverse();
-	axis = im.rotateVector(axis);
-
-	if (axis.length() < 0.001)
-		return;
-
-	model.rotate(angle, axis);
-
-}
-
-void Airplane::checkInput(float dt) 
-{
-	//Controles
-	if (Input::isKeyPressed(SDL_SCANCODE_LSHIFT)) speed *= 10; //move faster with left shift
-
-	if (Input::isKeyPressed(SDL_SCANCODE_E)) this->model.rotate(dt * dirSpeed/5, Vector3(0.0f, 1.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_Q)) this->model.rotate(dt * dirSpeed/5, Vector3(0.0f, -1.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_UP)) this->model.rotate(dt * dirSpeed/2, Vector3(1.0f, 0.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) this->model.rotate(dt * dirSpeed/2, Vector3(-1.0f, 0.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_LEFT)) this->model.rotate(dt * dirSpeed/2, Vector3(0.0f, 0.0f, -1.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) this->model.rotate(dt * dirSpeed/2, Vector3(0.0f, 0.0f, 1.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_P)) this->speed += 100 * dt;
-	if (Input::isKeyPressed(SDL_SCANCODE_O)) this->speed -= 100 * dt;
-	if (Input::isKeyPressed(SDL_SCANCODE_SPACE)) this->shootTorpedo();
-}
-
-void Airplane::shootTorpedo()
-{
-	if (!torpedo) {
-		return;
-	}
-	torpedo->time_of_life = 10;
-	torpedo->is_on = true;
-
-	World::root->addChild(torpedo);	
-	this->removeChild(torpedo);
-	cout << "Torpedo fired" << endl;
-}
-
-void Airplane::applyLookAt(Camera * camera)
-{
-
 }
 
 void Airplane::update(float dt)
@@ -187,13 +113,118 @@ void Airplane::update(float dt)
 			if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) Game::instance->camera2->move(Vector3(-1.0f, 0.0f, 0.0f));
 		}
 	}
-
 	else {
-		checkIA(dt);
+		this->checkIA(dt);
 	}
 	for (int i = 0; i < children.size(); i++) {
 		children[i]->update(dt);
 	}
+}
+
+void Airplane::checkIA(float dt) //BLOQUE IA
+{
+	if (target == NULL) {
+		//cout << "No target" << endl;
+		return;
+	}
+	//cout << "Target acquired" << endl;
+
+	//Rotar hacia el enemigo
+	Vector3 pos = getGlobalMatrix().getTranslation();
+	Vector3 target_pos = target->getGlobalMatrix().getTranslation();
+	Vector3 front = getGlobalMatrix().rotateVector(Vector3(0, 0, -1));
+
+	if (pos.y < 500) {
+		Vector3 newpos = pos + front * 100;
+		pos.y = 500;
+		target_pos = newpos;
+	}
+	Vector3 to_target = target_pos - pos;
+
+	float dist = (pos - target_pos).length();
+	if (abs(dist) < 0.00001){
+		return;
+	}
+
+	to_target.normalize();
+	if (front.length() > 0.01) {
+		front.normalize();
+	}
+
+	float FdotT = front.dot(to_target);
+	if (FdotT < -1) {
+		FdotT = -1;
+	}
+	else if (FdotT > 1) {
+		FdotT = 1;
+	}
+
+	float angle = acos(FdotT);
+
+	if (abs(angle) < 0.00001) {
+		//Alineado->Disparar?
+		return;
+	}
+
+	Vector3 axis = front.cross(to_target);
+	if (axis.length() > 0.01) {
+		axis.normalize();
+	}
+	
+
+	Matrix44 im = getGlobalMatrix();
+	im.inverse();
+	axis = im.rotateVector(axis);
+
+	if (axis.length() < 0.001) {
+		return;
+	}
+
+	model.rotate(dt*angle, axis);
+
+}
+
+void Airplane::checkInput(float dt) 
+{
+	//Controles
+	if (Input::isKeyPressed(SDL_SCANCODE_LSHIFT)) speed *= 10; //move faster with left shift
+
+	if (Input::isKeyPressed(SDL_SCANCODE_E)) this->model.rotate(dt * dirSpeed/5, Vector3(0.0f, 1.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_Q)) this->model.rotate(dt * dirSpeed/5, Vector3(0.0f, -1.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_UP)) this->model.rotate(dt * dirSpeed/2, Vector3(1.0f, 0.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) this->model.rotate(dt * dirSpeed/2, Vector3(-1.0f, 0.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_LEFT)) this->model.rotate(dt * dirSpeed/2, Vector3(0.0f, 0.0f, -1.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) this->model.rotate(dt * dirSpeed/2, Vector3(0.0f, 0.0f, 1.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_P)) this->speed += 100 * dt;
+	if (Input::isKeyPressed(SDL_SCANCODE_O)) this->speed -= 100 * dt;
+	if (Input::isKeyPressed(SDL_SCANCODE_SPACE)) this->shootGun();
+	if (Input::isKeyPressed(SDL_SCANCODE_B)) this->bomb();
+}
+
+void Airplane::bomb()
+{
+	if (!torpedo) {
+		return;
+	}
+	torpedo->time_of_life = 10;
+	torpedo->is_on = true;
+
+	World::root->addChild(torpedo);
+	this->removeChild(torpedo);
+	this->torpedo = NULL;
+	cout << "Torpedo fired" << endl;
+}
+
+void Airplane::shootGun()
+{
+	Vector3 pos = getGlobalMatrix() * Vector3(0,0,-10);
+	Vector3 vel = getGlobalMatrix().rotateVector(Vector3(0,0,-10));
+	BulletManager::instance.createBullet(pos,vel, 0, this, 10);
+}
+
+void Airplane::applyLookAt(Camera * camera)
+{
+
 }
 
 Terrain::Terrain() : EntityMesh()
@@ -222,10 +253,11 @@ void Sky::update(float dt)
 	this->model.setTranslation(Camera::current->eye.x, Camera::current->eye.y, Camera::current->eye.z);
 }
 
+
 Sea::Sea() : EntityMesh()
 {
-	mesh_name = "data/assets/island/water_deep.ASE";
-	texture_name = "data/assets/island/water_deep.tga";
+	mesh_name = "data/assets/agua/agua.ASE";
+	texture_name = "data/assets/agua/agua.tga";
 	texture = Texture::Load(texture_name.c_str());
 	mesh = Mesh::Load(mesh_name.c_str());
 }
@@ -251,5 +283,58 @@ void Torpedo::update(float dt)
 	if (is_on && time_of_life > 0) {
 		model.translate(0, -dt*10, 0);
 		time_of_life -= dt;
+	}
+}
+
+BulletManager::BulletManager()
+{
+	memset(&bullets, 0, sizeof(bullets));
+}
+
+void BulletManager::createBullet(Vector3 pos, Vector3 vel, char type, Airplane* author, float ttl)
+{
+	Bullet b;
+	b.position = pos;
+	b.velocity = vel;
+	b.type = type;
+	b.author = author;
+	b.ttl = 10;
+
+	for (int i = 0; i < max_bullets; i++) {
+		Bullet& bullet = bullets[i];
+		if (bullet.ttl > 0) {
+			continue;
+		}
+		bullet = b;
+		break;
+	}
+}
+
+void BulletManager::render()
+{
+	Mesh m;
+	for (int i = 0; i < max_bullets; i++) {
+		Bullet& bullet = bullets[i];
+		if (bullet.ttl <= 0) {
+			continue;
+		}
+		m.vertices.push_back(bullet.position);
+	}
+	glColor4f(0,0,1,0);
+	glPointSize(2);
+	m.renderFixedPipeline(GL_POINTS);
+
+}
+
+void BulletManager::update(float dt)
+{
+	for (int i = 0; i < max_bullets; i++) {
+		Bullet& bullet = bullets[i];
+		bullet.ttl -= dt;
+		if (bullet.ttl <= 0) {
+			continue;
+		}
+		bullet.position = bullet.position + bullet.velocity * dt;
+		bullet.velocity = bullet.velocity + Vector3(0,-10,0);
 	}
 }
