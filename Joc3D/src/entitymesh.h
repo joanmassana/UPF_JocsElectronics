@@ -106,7 +106,7 @@ struct Bullet {
 	float ttl;
 };
 
-const unsigned int max_bullets = 24;
+const unsigned int max_bullets = 2400;
 
 class BulletManager {
 public:

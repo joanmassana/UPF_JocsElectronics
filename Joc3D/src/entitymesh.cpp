@@ -47,7 +47,10 @@ void EntityMesh::render()
 		for (int i = 0; i < children.size(); i++) {
 			children[i]->render();
 		}
+
+
 	}
+
 }
 
 void EntityMesh::update(float dt)
@@ -97,21 +100,11 @@ void Airplane::update(float dt)
 	//Movimiento hacia delante
 	model.translate(0, 0, -speed * dt);
 
-	if (is_player) {
-		//Camara se mueve con el avión
-		if(Game::instance->camera12 == true) {
-			checkInput(dt);
-			Camera::current->lookAt(model*Vector3(0, 1.5, 10), model*Vector3(0, 0, -10), model.rotateVector(Vector3(0, 1, 0)));			
-		}
-
-		if (Game::instance->camera12 == false) {
-			std::cout << "camera12: " << Game::instance->camera12 << std::endl;
-
-			if (Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_UP)) Game::instance->camera2->move(Vector3(0.0f, 0.0f, 1.0f));
-			if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) Game::instance->camera2->move(Vector3(0.0f, 0.0f, -1.0f));
-			if (Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_LEFT)) Game::instance->camera2->move(Vector3(1.0f, 0.0f, 0.0f));
-			if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) Game::instance->camera2->move(Vector3(-1.0f, 0.0f, 0.0f));
-		}
+	if (is_player) {	//Camara se mueve con el avión
+		
+		checkInput(dt);
+		Game::instance->cameraPlayer->lookAt(model*Vector3(0, 1.5, 10), model*Vector3(0, 0, -10), model.rotateVector(Vector3(0, 1, 0)));			
+		
 	}
 	else {
 		this->checkIA(dt);
@@ -191,10 +184,10 @@ void Airplane::checkInput(float dt)
 
 	if (Input::isKeyPressed(SDL_SCANCODE_E)) this->model.rotate(dt * dirSpeed/5, Vector3(0.0f, 1.0f, 0.0f));
 	if (Input::isKeyPressed(SDL_SCANCODE_Q)) this->model.rotate(dt * dirSpeed/5, Vector3(0.0f, -1.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_W) || Input::isKeyPressed(SDL_SCANCODE_UP)) this->model.rotate(dt * dirSpeed/2, Vector3(1.0f, 0.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_S) || Input::isKeyPressed(SDL_SCANCODE_DOWN)) this->model.rotate(dt * dirSpeed/2, Vector3(-1.0f, 0.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_A) || Input::isKeyPressed(SDL_SCANCODE_LEFT)) this->model.rotate(dt * dirSpeed/2, Vector3(0.0f, 0.0f, -1.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_D) || Input::isKeyPressed(SDL_SCANCODE_RIGHT)) this->model.rotate(dt * dirSpeed/2, Vector3(0.0f, 0.0f, 1.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_UP)) this->model.rotate(dt * dirSpeed/2, Vector3(1.0f, 0.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_DOWN)) this->model.rotate(dt * dirSpeed/2, Vector3(-1.0f, 0.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_LEFT)) this->model.rotate(dt * dirSpeed/2, Vector3(0.0f, 0.0f, -1.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_RIGHT)) this->model.rotate(dt * dirSpeed/2, Vector3(0.0f, 0.0f, 1.0f));
 	if (Input::isKeyPressed(SDL_SCANCODE_P)) this->speed += 100 * dt;
 	if (Input::isKeyPressed(SDL_SCANCODE_O)) this->speed -= 100 * dt;
 	if (Input::isKeyPressed(SDL_SCANCODE_SPACE)) this->shootGun();
@@ -208,9 +201,11 @@ void Airplane::bomb()
 	}
 	torpedo->time_of_life = 10;
 	torpedo->is_on = true;
-
-	World::root->addChild(torpedo);
+		
+	Matrix44 glob = torpedo->getGlobalMatrix();
 	this->removeChild(torpedo);
+	World::root->addChild(torpedo);
+	torpedo->model = glob;
 	this->torpedo = NULL;
 	cout << "Torpedo fired" << endl;
 }
@@ -218,7 +213,7 @@ void Airplane::bomb()
 void Airplane::shootGun()
 {
 	Vector3 pos = getGlobalMatrix() * Vector3(0,0,-10);
-	Vector3 vel = getGlobalMatrix().rotateVector(Vector3(0,0,-10));
+	Vector3 vel = getGlobalMatrix().rotateVector(Vector3(0,0,-500));
 	BulletManager::instance.createBullet(pos,vel, 0, this, 10);
 }
 
@@ -284,6 +279,7 @@ void Torpedo::update(float dt)
 		model.translate(0, -dt*10, 0);
 		time_of_life -= dt;
 	}
+	//cout << "Position is: " << getGlobalMatrix().getTranslation().x << ", " << getGlobalMatrix().getTranslation().y << ", " << getGlobalMatrix().getTranslation().z << endl;
 }
 
 BulletManager::BulletManager()
@@ -293,12 +289,13 @@ BulletManager::BulletManager()
 
 void BulletManager::createBullet(Vector3 pos, Vector3 vel, char type, Airplane* author, float ttl)
 {
+	//cout << "Creating bullet" << endl;
 	Bullet b;
 	b.position = pos;
 	b.velocity = vel;
 	b.type = type;
 	b.author = author;
-	b.ttl = 10;
+	b.ttl = ttl;
 
 	for (int i = 0; i < max_bullets; i++) {
 		Bullet& bullet = bullets[i];
@@ -312,6 +309,7 @@ void BulletManager::createBullet(Vector3 pos, Vector3 vel, char type, Airplane* 
 
 void BulletManager::render()
 {
+	//cout << "Rendering bullet" << endl;
 	Mesh m;
 	for (int i = 0; i < max_bullets; i++) {
 		Bullet& bullet = bullets[i];
@@ -320,21 +318,26 @@ void BulletManager::render()
 		}
 		m.vertices.push_back(bullet.position);
 	}
-	glColor4f(0,0,1,0);
+	glColor4f(1,1,0.3,1);
 	glPointSize(2);
-	m.renderFixedPipeline(GL_POINTS);
-
+	if(m.vertices.size() > 0) {
+		m.renderFixedPipeline(GL_POINTS);
+	}
 }
 
 void BulletManager::update(float dt)
 {
+	//cout << "Updating bullet" << endl;
 	for (int i = 0; i < max_bullets; i++) {
 		Bullet& bullet = bullets[i];
 		bullet.ttl -= dt;
 		if (bullet.ttl <= 0) {
 			continue;
 		}
+		
 		bullet.position = bullet.position + bullet.velocity * dt;
-		bullet.velocity = bullet.velocity + Vector3(0,-10,0);
+		bullet.velocity = bullet.velocity + Vector3(0,-dt,0);
+		cout << bullet.position.y << endl;
+
 	}
 }

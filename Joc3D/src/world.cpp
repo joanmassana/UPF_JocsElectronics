@@ -55,7 +55,7 @@ void World::render(float dt)
 		(*it)->render();
 	}
 	
-	//BulletManager::instance.render();
+	BulletManager::instance.render();
 	
 	
 
