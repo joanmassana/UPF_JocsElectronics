@@ -133,7 +133,7 @@ void Airplane::checkIA(float dt) //BLOQUE IA
 	Vector3 to_target = target_pos - pos;
 
 	float dist = (pos - target_pos).length();
-	if (abs(dist) < 0.00001){
+	if (abs(dist) < 0.00001) {
 		return;
 	}
 
@@ -158,9 +158,10 @@ void Airplane::checkIA(float dt) //BLOQUE IA
 	}
 
 	Vector3 axis = front.cross(to_target);
-	if (axis.length() > 0.01) {
-		axis.normalize();
-	}	
+	//if (axis.length() > 0.01) {
+	//	axis.normalize();
+	//}
+
 
 	Matrix44 im = getGlobalMatrix();
 	im.inverse();
@@ -171,7 +172,7 @@ void Airplane::checkIA(float dt) //BLOQUE IA
 		return;
 	}
 
-	model.rotate(dt*angle, axis);
+	model.rotate(angle, axis*-1);
 
 }
 
@@ -186,8 +187,8 @@ void Airplane::checkInput(float dt)
 	if (Input::isKeyPressed(SDL_SCANCODE_DOWN)) this->model.rotate(dt * dirSpeed/2, Vector3(-1.0f, 0.0f, 0.0f));
 	if (Input::isKeyPressed(SDL_SCANCODE_LEFT)) this->model.rotate(dt * dirSpeed/2, Vector3(0.0f, 0.0f, -1.0f));
 	if (Input::isKeyPressed(SDL_SCANCODE_RIGHT)) this->model.rotate(dt * dirSpeed/2, Vector3(0.0f, 0.0f, 1.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_P)) this->speed += 100 * dt;
-	if (Input::isKeyPressed(SDL_SCANCODE_O)) this->speed -= 100 * dt;
+	if (Input::isKeyPressed(SDL_SCANCODE_P)) this->speed += 20 * dt;
+	if (Input::isKeyPressed(SDL_SCANCODE_O)) this->speed -= 20 * dt;
 	if (Input::isKeyPressed(SDL_SCANCODE_SPACE)) this->shootGun();
 	if (Input::isKeyPressed(SDL_SCANCODE_B)) this->bomb();
 }
