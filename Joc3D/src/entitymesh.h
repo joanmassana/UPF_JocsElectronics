@@ -88,6 +88,7 @@ class Sky : public EntityMesh {
 public:
 
 	Sky();
+	//void render();
 	void update(float dt);
 };
 
@@ -95,7 +96,9 @@ class Sea : public EntityMesh {
 public:
 
 	Sea();
+	//void render();
 	void update(float dt);
+
 };
 
 struct Bullet {

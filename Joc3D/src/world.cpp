@@ -22,9 +22,13 @@ World::World()
 	root->addChild(terrain);
 
 	this->sky = new Sky();
-	
+	root->addChild(sky);
+
 	this->sea = new Sea();
 	root->addChild(sea);
+
+	
+
 
 	//Creamos el avion Player
 	this->player = new Airplane(RAF_FIGHTER, Vector3(0,0,0), true);
@@ -43,12 +47,6 @@ World::~World()
 
 void World::render(float dt)
 {
-	//Render sky without z-buffer
-	glDisable(GL_DEPTH_TEST);
-	sky->model.setTranslation(Game::instance->cameraCurrent->eye.x, Game::instance->cameraCurrent->eye.y, Game::instance->cameraCurrent->eye.z);
-	sky->render();
-	glEnable(GL_DEPTH_TEST);
-
 	//World render
 	root->render();
 
@@ -75,12 +73,13 @@ void World::update(float dt)
 	}	
 
 	//Detectar colision avion-terreno
-	Vector3 front = Camera::current->center - Camera::current->eye;
+	//Vector3 front = Camera::current->center - Camera::current->eye;
+	Vector3 front = Game::instance->cameraCurrent->center - Game::instance->cameraCurrent->eye;
 	front.normalize();
 	Vector3 col_point;
 	Vector3 normal;
 
-	if (terrain->mesh->testRayCollision(terrain->model, Camera::current->eye, front, col_point, normal, 1, false)) {
+	if (terrain->mesh->testRayCollision(terrain->model, Game::instance->cameraCurrent->eye, front, col_point, normal, 1, false)) {
 		cout << "Col" << endl;
 	}
 

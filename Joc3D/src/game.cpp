@@ -7,7 +7,7 @@
 #include "input.h"
 #include "entity.h"
 #include "world.h"
-#include "bass.h"
+
 #include <cmath>
 
 float angle = 0;
@@ -15,7 +15,6 @@ float angle = 0;
 World* world;
 
 Game* Game::instance = NULL;
-
 
 Game::Game(int window_width, int window_height, SDL_Window* window)
 {
@@ -39,6 +38,7 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 
 	//create our camera
 	cameraPlayer = new Camera();
+	cameraPlayer->lookAt(Vector3(0.f, 500.f, 100.f),Vector3(0.f,400.f,0.f), Vector3(0.f,1.f,0.f)); //position the camera and point to 0,0,0
 	cameraPlayer->setPerspective(70.f,window_width/(float)window_height,0.1f,100000.f); //set the projection, we want to be perspective
 
 	cameraFree = new Camera();
@@ -46,6 +46,7 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	cameraFree->setPerspective(70.f, window_width / (float)window_height, 0.1f, 10000.f); //set the projection, we want to be perspective
 
 	cameraCurrent = new Camera();
+	cameraCurrent = cameraPlayer;
 
 	//hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
@@ -87,7 +88,6 @@ void Game::update(double seconds_elapsed)
 {
 	world->update(seconds_elapsed);
 	float speed = seconds_elapsed * 100; //the speed is defined by the seconds_elapsed so it goes constant
-	cameraCurrent = cameraPlayer;
 
 	//example
 	angle += (float)seconds_elapsed * 10.0f;
@@ -100,11 +100,15 @@ void Game::update(double seconds_elapsed)
 	}
 
 	if (Input::isKeyPressed(SDL_SCANCODE_C)) cameraCurrent = cameraPlayer;
-	if (Input::isKeyPressed(SDL_SCANCODE_F)) cameraCurrent = cameraFree;
-	if (Input::isKeyPressed(SDL_SCANCODE_W)) cameraFree->move(Vector3(0.0f, 0.0f, 1.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_S)) cameraFree->move(Vector3(0.0f, 0.0f, -1.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_A)) cameraFree->move(Vector3(1.0f, 0.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_D)) cameraFree->move(Vector3(-1.0f, 0.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_F)) {
+		cameraCurrent = cameraFree;
+		cameraCurrent->lookAt(cameraPlayer->eye, cameraPlayer->center, cameraPlayer->up);
+	}
+
+	if (Input::isKeyPressed(SDL_SCANCODE_W)) cameraFree->move(Vector3(0.0f, 0.0f, 1.0f)*3);
+	if (Input::isKeyPressed(SDL_SCANCODE_S)) cameraFree->move(Vector3(0.0f, 0.0f, -1.0f)*3);
+	if (Input::isKeyPressed(SDL_SCANCODE_A)) cameraFree->move(Vector3(1.0f, 0.0f, 0.0f)*3);
+	if (Input::isKeyPressed(SDL_SCANCODE_D)) cameraFree->move(Vector3(-1.0f, 0.0f, 0.0f)*3);
 
 	
 	//to navigate with the mouse fixed in the middle

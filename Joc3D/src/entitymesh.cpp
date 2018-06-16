@@ -35,14 +35,14 @@ void EntityMesh::render()
 
 		//upload uniforms
 		current_shader->setUniform("u_color", Vector4(1, 1, 1, 1));
-		current_shader->setUniform("u_viewprojection", Camera::current->viewprojection_matrix);
+		current_shader->setUniform("u_viewprojection", Game::instance->cameraCurrent->viewprojection_matrix);
 		current_shader->setUniform("u_texture", this->texture);
 		current_shader->setUniform("u_model", this->getGlobalMatrix());
 
 		mesh->render(GL_TRIANGLES, current_shader);
 
 		//disable shader
-		current_shader->disable();
+		current_shader->disable(); 
 
 		for (int i = 0; i < children.size(); i++) {
 			children[i]->render();
@@ -78,7 +78,8 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 
 	this->target = new Entity();
 	this->target->model.translate(5000.0, 5000.0, -5000.0);
-	
+	cout << "Target is: " << target->getGlobalMatrix().getTranslation().x << ", " << target->getGlobalMatrix().getTranslation().y << ", " << target->getGlobalMatrix().getTranslation().z << endl;
+
 	this->is_player = isPlayer;
 	if (is_player) {
 		this->model.translate(0, 1000, 0);
@@ -102,7 +103,8 @@ void Airplane::update(float dt)
 	if (is_player) {	//Camara se mueve con el avión
 		
 		checkInput(dt);
-		Game::instance->cameraPlayer->lookAt(model*Vector3(0, 1.75, 10), model*Vector3(0, 0, -10), model.rotateVector(Vector3(0, 1, 0)));	
+		Game::instance->cameraPlayer->lookAt(model*Vector3(0, 1.5, 10), model*Vector3(0, 0, -10), model.rotateVector(Vector3(0, 1, 0)));			
+		
 	}
 	else {
 		this->checkIA(dt);
@@ -158,10 +160,10 @@ void Airplane::checkIA(float dt) //BLOQUE IA
 	}
 
 	Vector3 axis = front.cross(to_target);
-	if (axis.length() > 0.01) {
-		axis.normalize();
-	}	
-
+	//if (axis.length() > 0.01) {
+	//	axis.normalize();
+	//}
+	
 	Matrix44 im = getGlobalMatrix();
 	im.inverse();
 	axis = im.rotateVector(axis);
@@ -171,7 +173,7 @@ void Airplane::checkIA(float dt) //BLOQUE IA
 		return;
 	}
 
-	model.rotate(dt*angle, axis);
+	model.rotate(angle, axis*-1);
 
 }
 
@@ -210,11 +212,9 @@ void Airplane::bomb()
 
 void Airplane::shootGun()
 {
-	Vector3 pos_right = getGlobalMatrix() * Vector3(1.9,0,-1.9);
-	Vector3 pos_left = getGlobalMatrix() * Vector3(-1.9, 0, -1.9);
+	Vector3 pos = getGlobalMatrix() * Vector3(0,0,-10);
 	Vector3 vel = getGlobalMatrix().rotateVector(Vector3(0,0,-500));
-	BulletManager::instance.createBullet(pos_right,vel, 0, this, 10);
-	BulletManager::instance.createBullet(pos_left, vel, 0, this, 10);
+	BulletManager::instance.createBullet(pos,vel, 0, this, 10);
 }
 
 void Airplane::applyLookAt(Camera * camera)
@@ -232,7 +232,7 @@ Terrain::Terrain() : EntityMesh()
 
 void Terrain::update(float dt)
 {
-
+	
 }
 
 Sky::Sky() : EntityMesh()
@@ -243,11 +243,18 @@ Sky::Sky() : EntityMesh()
 	mesh = Mesh::Load(mesh_name.c_str());
 }
 
+/*void Sky::render()
+{
+	glDisable(GL_DEPTH_TEST); //check the occlusions using the Z buffer
+	glEnable(GL_DEPTH_TEST); //check the occlusions using the Z buffer
+
+}*/
 
 void Sky::update(float dt)
 {	
-	this->model.setTranslation(Camera::current->eye.x, Camera::current->eye.y, Camera::current->eye.z);
+	this->model.setTranslation(Game::instance->cameraCurrent->eye.x, Game::instance->cameraCurrent->eye.y, Game::instance->cameraCurrent->eye.z);
 }
+
 
 
 Sea::Sea() : EntityMesh()
@@ -257,6 +264,13 @@ Sea::Sea() : EntityMesh()
 	texture = Texture::Load(texture_name.c_str());
 	mesh = Mesh::Load(mesh_name.c_str());
 }
+
+/*
+void Sea::render()
+{
+	glDisable(GL_DEPTH_TEST); //check the occlusions using the Z buffer
+	glEnable(GL_DEPTH_TEST); //check the occlusions using the Z buffer
+}*/
 
 void Sea::update(float dt)
 {
@@ -277,9 +291,10 @@ Torpedo::Torpedo() : EntityMesh()
 void Torpedo::update(float dt)
 {
 	if (is_on && time_of_life > 0) {
-		model.translate(0, -dt * 10, 0);
+		model.translate(0, -dt*10, 0);
 		time_of_life -= dt;
 	}
+	//cout << "Position is: " << getGlobalMatrix().getTranslation().x << ", " << getGlobalMatrix().getTranslation().y << ", " << getGlobalMatrix().getTranslation().z << endl;
 }
 
 BulletManager::BulletManager()
@@ -289,6 +304,7 @@ BulletManager::BulletManager()
 
 void BulletManager::createBullet(Vector3 pos, Vector3 vel, char type, Airplane* author, float ttl)
 {
+	//cout << "Creating bullet" << endl;
 	Bullet b;
 	b.position = pos;
 	b.velocity = vel;
@@ -308,6 +324,7 @@ void BulletManager::createBullet(Vector3 pos, Vector3 vel, char type, Airplane* 
 
 void BulletManager::render()
 {
+	//cout << "Rendering bullet" << endl;
 	Mesh m;
 	for (int i = 0; i < max_bullets; i++) {
 		Bullet& bullet = bullets[i];
@@ -317,7 +334,7 @@ void BulletManager::render()
 		m.vertices.push_back(bullet.position);
 	}
 	glColor4f(1,1,0.3,1);
-	glPointSize(4);
+	glPointSize(2);
 	if(m.vertices.size() > 0) {
 		m.renderFixedPipeline(GL_POINTS);
 	}
@@ -325,15 +342,15 @@ void BulletManager::render()
 
 void BulletManager::update(float dt)
 {
-	
+	//cout << "Updating bullet" << endl;
 	for (int i = 0; i < max_bullets; i++) {
 		Bullet& bullet = bullets[i];
 		bullet.ttl -= dt;
 		if (bullet.ttl <= 0) {
 			continue;
-		}		
+		}
+		
 		bullet.position = bullet.position + bullet.velocity * dt;
-		bullet.velocity = bullet.velocity + Vector3(0,-dt*10,0);
-
+		bullet.velocity = bullet.velocity + Vector3(0,-dt,0);
 	}
 }
