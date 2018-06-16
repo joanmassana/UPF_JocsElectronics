@@ -64,8 +64,10 @@ public:
 	void update(float dt);
 	void bomb();
 	void shootGun();
-	void checkIA(float dt); //BLOQUE IA
 	void checkInput(float dt); //BLOQUE IA
+	void checkIA(float dt); //BLOQUE IA
+	void goToTarget(float dt);
+	
 };
 
 class Torpedo : public EntityMesh {

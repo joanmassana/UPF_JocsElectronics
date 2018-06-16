@@ -29,6 +29,7 @@ World::World()
 	//Creamos el avion Player
 	this->player = new Airplane(RAF_FIGHTER, Vector3(0,0,0), true);
 	root->addChild(player);
+
 	//Creamos otros aviones
 	for (int i = 0; i < 2; i++) {
 		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(-100 + i*50, 700, -160), false);
@@ -75,7 +76,7 @@ void World::update(float dt)
 	}	
 
 	//Detectar colision avion-terreno
-	Vector3 front = Camera::current->center - Camera::current->eye;
+	Vector3 front = Game::instance->cameraCurrent->center - Game::instance->cameraCurrent->eye;
 	front.normalize();
 	Vector3 col_point;
 	Vector3 normal;

@@ -112,14 +112,33 @@ void Airplane::update(float dt)
 	}
 }
 
+void Airplane::checkInput(float dt)
+{
+	//Controles
+	if (Input::isKeyPressed(SDL_SCANCODE_LSHIFT)) speed *= 10; //move faster with left shift
+
+	if (Input::isKeyPressed(SDL_SCANCODE_E)) this->model.rotate(dt * dirSpeed / 5, Vector3(0.0f, 1.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_Q)) this->model.rotate(dt * dirSpeed / 5, Vector3(0.0f, -1.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_UP)) this->model.rotate(dt * dirSpeed / 2, Vector3(1.0f, 0.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_DOWN)) this->model.rotate(dt * dirSpeed / 2, Vector3(-1.0f, 0.0f, 0.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_LEFT)) this->model.rotate(dt * dirSpeed / 2, Vector3(0.0f, 0.0f, -1.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_RIGHT)) this->model.rotate(dt * dirSpeed / 2, Vector3(0.0f, 0.0f, 1.0f));
+	if (Input::isKeyPressed(SDL_SCANCODE_P)) this->speed += 20 * dt;
+	if (Input::isKeyPressed(SDL_SCANCODE_O)) this->speed -= 20 * dt;
+	if (Input::isKeyPressed(SDL_SCANCODE_SPACE)) this->shootGun();
+	if (Input::isKeyPressed(SDL_SCANCODE_B)) this->bomb();
+}
+
 void Airplane::checkIA(float dt) //BLOQUE IA
 {
-	if (target == NULL) {
-		//cout << "No target" << endl;
-		return;
+	if (target) {		
+		goToTarget(dt);
 	}
-	//cout << "Target acquired" << endl;
+	return;
+}
 
+void Airplane::goToTarget(float dt) //BLOQUE IA
+{
 	//Rotar hacia el enemigo
 	Vector3 pos = getGlobalMatrix().getTranslation();
 	Vector3 target_pos = target->getGlobalMatrix().getTranslation();
@@ -158,15 +177,13 @@ void Airplane::checkIA(float dt) //BLOQUE IA
 	}
 
 	Vector3 axis = front.cross(to_target);
-	//if (axis.length() > 0.01) {
-	//	axis.normalize();
-	//}
-
 
 	Matrix44 im = getGlobalMatrix();
 	im.inverse();
 	axis = im.rotateVector(axis);
-	axis.normalize();
+	if (axis.length() > 0.01) {
+		axis.normalize();
+	}
 
 	if (axis.length() < 0.001) {
 		return;
@@ -174,23 +191,6 @@ void Airplane::checkIA(float dt) //BLOQUE IA
 
 	model.rotate(angle, axis*-1);
 
-}
-
-void Airplane::checkInput(float dt) 
-{
-	//Controles
-	if (Input::isKeyPressed(SDL_SCANCODE_LSHIFT)) speed *= 10; //move faster with left shift
-
-	if (Input::isKeyPressed(SDL_SCANCODE_E)) this->model.rotate(dt * dirSpeed/5, Vector3(0.0f, 1.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_Q)) this->model.rotate(dt * dirSpeed/5, Vector3(0.0f, -1.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_UP)) this->model.rotate(dt * dirSpeed/2, Vector3(1.0f, 0.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_DOWN)) this->model.rotate(dt * dirSpeed/2, Vector3(-1.0f, 0.0f, 0.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_LEFT)) this->model.rotate(dt * dirSpeed/2, Vector3(0.0f, 0.0f, -1.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_RIGHT)) this->model.rotate(dt * dirSpeed/2, Vector3(0.0f, 0.0f, 1.0f));
-	if (Input::isKeyPressed(SDL_SCANCODE_P)) this->speed += 20 * dt;
-	if (Input::isKeyPressed(SDL_SCANCODE_O)) this->speed -= 20 * dt;
-	if (Input::isKeyPressed(SDL_SCANCODE_SPACE)) this->shootGun();
-	if (Input::isKeyPressed(SDL_SCANCODE_B)) this->bomb();
 }
 
 void Airplane::bomb()
