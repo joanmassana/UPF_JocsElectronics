@@ -26,13 +26,13 @@ World::World()
 	this->sea = new Sea();
 	root->addChild(sea);
 
-	//Creamos el avion Player
-	this->player = new Airplane(RAF_FIGHTER, Vector3(0,0,0), true);
-	root->addChild(player);
-
 	//Creamos otros aviones
 	for (int i = 0; i < 2; i++) {
-		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(-100 + i*50, 700, -160), false);
+		if (i == 0) {
+			Airplane* airplane = new Airplane(RAF_FIGHTER, Vector3(0, 0, 0), true);
+			planes.push_back(airplane);
+		}
+		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(-100 + i*50, 1000, -160), false);
 		planes.push_back(airplane);
 	}
 }
@@ -53,7 +53,7 @@ void World::render(float dt)
 	//World render
 	root->render();
 
-	//Enenmies render
+	//planes render
 	for (auto it = planes.begin(); it != planes.end(); ++it) {
 		(*it)->render();
 	}
@@ -73,17 +73,28 @@ void World::update(float dt)
 
 	for (auto it = planes.begin(); it != planes.end(); ++it) {
 		(*it)->update(dt);
+
+		if ((*it)->crashed) {
+			continue;
+		}
+		
+		//Detectar colision avion-terreno
+		Vector3 front = (*it)->getGlobalMatrix().rotateVector(Vector3(0, 0, -1));
+		front.normalize();
+		Vector3 col_point;
+		Vector3 normal;
+
+		if (terrain->mesh->testRayCollision(terrain->model, (*it)->getGlobalMatrix().getTranslation(), front, col_point, normal, 1, false)) {
+			if ((*it)->is_player) {
+				cout << "Player crashed against terrain" << endl;
+				(*it)->crashed = true;				
+			}
+			else {
+				cout << "NPC crashed against terrain" << endl;
+				(*it)->crashed = true;
+			}			
+		}
 	}	
-
-	//Detectar colision avion-terreno
-	Vector3 front = Game::instance->cameraCurrent->center - Game::instance->cameraCurrent->eye;
-	front.normalize();
-	Vector3 col_point;
-	Vector3 normal;
-
-	if (terrain->mesh->testRayCollision(terrain->model, Camera::current->eye, front, col_point, normal, 1, false)) {
-		cout << "Col" << endl;
-	}
-
+	
 	BulletManager::instance.update(dt);
 }

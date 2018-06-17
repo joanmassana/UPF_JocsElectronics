@@ -75,8 +75,15 @@ void Game::render(void)
 	//Draw out world
 	//drawGrid();
 
+	int a = BulletManager::instance.bulletsLeft;
+	stringstream ss;
+	ss << "Ammo: ";
+	ss << a;
+	string str = ss.str();
+
 	//render the FPS
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
+	drawText(1000, 2, str, Vector3(1, 1, 1), 2);
 
 	//swap between front buffer and back buffer
 	SDL_GL_SwapWindow(this->window);

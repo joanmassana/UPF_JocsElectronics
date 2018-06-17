@@ -24,7 +24,7 @@ Game* game = NULL;
 
 // *********************************
 //create a window using SDL
-SDL_Window* createWindow(const char* caption, int width, int height, bool fullscreen = false)
+SDL_Window* createWindow(const char* caption, int width, int height, bool fullscreen = true)
 {
     int multisample = 8;
     bool retina = true; //change this to use a retina display
@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 	SDL_Init(SDL_INIT_EVERYTHING);
 
 	bool fullscreen = false; //change this to go fullscreen
-	Vector2 size(800,600);
+	Vector2 size(1024,768);
 
 	if(fullscreen)
 		size = getDesktopSize(0);

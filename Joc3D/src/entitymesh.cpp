@@ -67,17 +67,29 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		texture_name = "data/assets/spitfire/spitfire_color_spec.tga";
 		speed = 50;
 		dirSpeed = 2;
+		health = 100;
+		isAlive = true;
+		crashed = false;
+		canShoot = true;
+		shootTimer = 0;
+		rate_of_fire = 25;
 		break;
 	case LUFTWAFFE_BOMBER:
 		mesh_name = "data/assets/bomber/bomber_axis.ASE";
 		texture_name = "data/assets/bomber/bomber_axis.tga";
 		speed = 40;
 		dirSpeed = 1;
+		health = 80;
+		shootTimer = 0;
+		rate_of_fire = 10;
+		isAlive = true;
+		crashed = false;
 		break;
 	}
 
-	this->target = new Entity();
-	this->target->model.translate(5000.0, 5000.0, -5000.0);
+	this->target = NULL;
+	//this->target = new Entity();
+	//this->target->model.translate(50000.0, 1000.0, -5000.0);
 	
 	this->is_player = isPlayer;
 	if (is_player) {
@@ -96,17 +108,31 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 
 void Airplane::update(float dt)
 {
+	if (crashed) {
+		return;
+	}	
+	
+	if (isAlive) {
+		if (health <= 0) {
+			if (!target) {
+				target = new Entity();
+			}
+			target->model.translate(getGlobalMatrix().getTranslation().x, 0, getGlobalMatrix().getTranslation().z - 500.0);
+			isAlive = false;
+		}
+	}
+
 	//Movimiento hacia delante
 	model.translate(0, 0, -speed * dt);
 
 	if (is_player) {	//Camara se mueve con el avión
-		
 		checkInput(dt);
-		Game::instance->cameraPlayer->lookAt(model*Vector3(0, 1.75, 10), model*Vector3(0, 0, -10), model.rotateVector(Vector3(0, 1, 0)));	
+		Game::instance->cameraPlayer->lookAt(model*Vector3(0, 1.75, 10), model*Vector3(0, 0, -10), model.rotateVector(Vector3(0, 1, 0)));
 	}
 	else {
 		this->checkIA(dt);
 	}
+
 	for (int i = 0; i < children.size(); i++) {
 		children[i]->update(dt);
 	}
@@ -125,8 +151,21 @@ void Airplane::checkInput(float dt)
 	if (Input::isKeyPressed(SDL_SCANCODE_RIGHT)) this->model.rotate(dt * dirSpeed / 2, Vector3(0.0f, 0.0f, 1.0f));
 	if (Input::isKeyPressed(SDL_SCANCODE_P)) this->speed += 20 * dt;
 	if (Input::isKeyPressed(SDL_SCANCODE_O)) this->speed -= 20 * dt;
-	if (Input::isKeyPressed(SDL_SCANCODE_SPACE)) this->shootGun();
+	if (Input::isKeyPressed(SDL_SCANCODE_SPACE)) {
+		if (canShoot) {
+			this->shootGun();
+			canShoot = false;
+			shootTimer = 0;
+		}
+		else {
+			shootTimer += dt;
+			if (shootTimer > (1 / rate_of_fire)) {
+				canShoot = true;
+			}
+		}
+	}
 	if (Input::isKeyPressed(SDL_SCANCODE_B)) this->bomb();
+
 }
 
 void Airplane::checkIA(float dt) //BLOQUE IA
@@ -189,7 +228,7 @@ void Airplane::goToTarget(float dt) //BLOQUE IA
 		return;
 	}
 
-	model.rotate(angle, axis*-1);
+	model.rotate(angle*dt/2, axis*-1);
 
 }
 
@@ -296,6 +335,7 @@ void BulletManager::createBullet(Vector3 pos, Vector3 vel, char type, Airplane* 
 	b.type = type;
 	b.author = author;
 	b.ttl = ttl;
+	b.damage = 10;
 
 	for (int i = 0; i < max_bullets; i++) {
 		Bullet& bullet = bullets[i];
@@ -303,6 +343,7 @@ void BulletManager::createBullet(Vector3 pos, Vector3 vel, char type, Airplane* 
 			continue;
 		}
 		bullet = b;
+		bulletsLeft--;
 		break;
 	}
 }
@@ -325,8 +366,7 @@ void BulletManager::render()
 }
 
 void BulletManager::update(float dt)
-{
-	
+{	
 	for (int i = 0; i < max_bullets; i++) {
 		Bullet& bullet = bullets[i];
 		bullet.ttl -= dt;
@@ -336,5 +376,24 @@ void BulletManager::update(float dt)
 		bullet.position = bullet.position + bullet.velocity * dt;
 		bullet.velocity = bullet.velocity + Vector3(0,-dt*10,0);
 
+		//Detectar colision bala-avion
+		for (auto it = Airplane::planes.begin(); it != Airplane::planes.end(); ++it) {
+
+			Vector3 front = bullet.velocity;
+			front.normalize();
+			Vector3 col_point;
+			Vector3 normal;
+
+			if ((*it)->mesh->testRayCollision((*it)->model, bullet.position, front, col_point, normal, 1, false)) {
+				if ((*it)->isAlive) {
+					if (!(*it)->is_player) {
+						cout << "Impact!" << endl;
+						(*it)->health -= bullet.damage;		
+					}
+				}	
+			}
+		}
 	}
 }
+
+

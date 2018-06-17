@@ -28,7 +28,6 @@ public:
 	EntityMesh* terrain;
 	EntityMesh* sky;
 	EntityMesh* sea;
-	Airplane* player;
 	std::vector<Airplane*> planes;
 
 	//float lod_distance_threshold;

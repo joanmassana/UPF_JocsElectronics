@@ -42,7 +42,6 @@ public:
 	//METHODS
 	virtual void render();
 	virtual void update(float dt);
-
 };
 
 class Torpedo;
@@ -54,6 +53,12 @@ public:
 	float dirSpeed;
 	bool is_player;
 	Torpedo* torpedo;
+	int health;
+	bool isAlive;
+	bool crashed;
+	bool canShoot;
+	float shootTimer;
+	int rate_of_fire;
 	
 	static vector<Airplane*> planes;
 
@@ -106,6 +111,7 @@ struct Bullet {
 	Vector3 velocity;
 	Airplane* author;
 	float ttl;
+	int damage;
 };
 
 const unsigned int max_bullets = 2400;
@@ -114,6 +120,7 @@ class BulletManager {
 public:
 	Bullet bullets[max_bullets];
 	static BulletManager instance;
+	int bulletsLeft = max_bullets;
 
 	BulletManager();
 	void createBullet(Vector3 pos, Vector3 vel, char type, Airplane* author, float ttl);
