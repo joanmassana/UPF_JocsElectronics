@@ -7,6 +7,7 @@
 #include "input.h"
 #include "entity.h"
 #include "world.h"
+#include "bass.h"
 
 #include <cmath>
 
@@ -50,6 +51,15 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 
 	//hide the cursor
 	SDL_ShowCursor(!mouse_locked); //hide or show the mouse
+
+	//Audio
+	HSAMPLE hSample;
+	HCHANNEL hSampleChannel;
+
+	BASS_Init(1, 44100, 0, 0, NULL);
+	hSample = BASS_SampleLoad(false, "data/sounds/music.mp3", 0, 0, 3, BASS_SAMPLE_LOOP);
+	hSampleChannel = BASS_SampleGetChannel(hSample, false);
+	BASS_ChannelPlay(hSampleChannel, true);
 }
 
 //what to do when the image has to be draw

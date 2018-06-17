@@ -4,6 +4,7 @@
 #include "entity.h"
 #include "mesh.h"
 #include "entitymesh.h"
+#include "bass.h"
 #include <iostream>
 
 class Mesh; 
@@ -87,11 +88,31 @@ void World::update(float dt)
 		if (terrain->mesh->testRayCollision(terrain->model, (*it)->getGlobalMatrix().getTranslation(), front, col_point, normal, 1, false)) {
 			if ((*it)->is_player) {
 				cout << "Player crashed against terrain" << endl;
-				(*it)->crashed = true;				
+				(*it)->crashed = true;
+				//Audio
+				HSAMPLE hSample;
+				HCHANNEL hSampleChannel;
+
+				BASS_Init(1, 44100, 0, 0, NULL);
+				hSample = BASS_SampleLoad(false, "data/sounds/explosion.wav", 0, 0, 1, 0);
+				hSampleChannel = BASS_SampleGetChannel(hSample, false);
+				BASS_ChannelPlay(hSampleChannel, true);
 			}
 			else {
 				cout << "NPC crashed against terrain" << endl;
 				(*it)->crashed = true;
+				//Audio
+				HSAMPLE hSample;
+				HCHANNEL hSampleChannel;
+				BASS_3DVECTOR* explosionPos = new BASS_3DVECTOR((*it)->getGlobalMatrix().getTranslation().x, (*it)->getGlobalMatrix().getTranslation().y, (*it)->getGlobalMatrix().getTranslation().z);
+
+				
+
+				BASS_Init(1, 44100, 0, 0, NULL);
+				hSample = BASS_SampleLoad(false, "data/sounds/explosion.wav", 0, 0, 1, 0);
+				hSampleChannel = BASS_SampleGetChannel(hSample, false);
+				BASS_ChannelSet3DPosition(hSample, explosionPos, NULL, NULL);
+				BASS_ChannelPlay(hSampleChannel, true);
 			}			
 		}
 	}	

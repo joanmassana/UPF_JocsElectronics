@@ -6,6 +6,7 @@
 #include "texture.h"
 #include "mesh.h"
 #include "world.h"
+#include "bass.h"
 #include <iostream>
 #include <algorithm>
 using namespace std;
@@ -255,6 +256,17 @@ void Airplane::shootGun()
 	Vector3 vel = getGlobalMatrix().rotateVector(Vector3(0,0,-500));
 	BulletManager::instance.createBullet(pos_right,vel, 0, this, 10);
 	BulletManager::instance.createBullet(pos_left, vel, 0, this, 10);
+	
+	
+
+	//Audio
+	HSAMPLE hSample;
+	HCHANNEL hSampleChannel;
+
+	BASS_Init(1, 44100, 0, 0, NULL);
+	hSample = BASS_SampleLoad(false, "data/sounds/gunshot.wav", 0, 0, 1, 0);
+	hSampleChannel = BASS_SampleGetChannel(hSample, false);
+	BASS_ChannelPlay(hSampleChannel, true);
 }
 
 void Airplane::applyLookAt(Camera * camera)
