@@ -36,6 +36,11 @@ World::World()
 		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(-100 + i*50, 1000, -160), false);
 		planes.push_back(airplane);
 	}
+
+	//Audio
+	BASS_Init(1, 44100, 0, 0, NULL);
+	hSample = BASS_SampleLoad(false, "data/sounds/explosion.wav", 0, 0, 1, 0);
+	hSampleChannel = BASS_SampleGetChannel(hSample, false);
 }
 
 World::~World()
@@ -71,6 +76,7 @@ void World::render(float dt)
 void World::update(float dt)
 {
 	root->update(dt);
+	sky->update(dt);
 
 	for (auto it = planes.begin(); it != planes.end(); ++it) {
 		(*it)->update(dt);
@@ -89,30 +95,24 @@ void World::update(float dt)
 			if ((*it)->is_player) {
 				cout << "Player crashed against terrain" << endl;
 				(*it)->crashed = true;
-				//Audio
-				HSAMPLE hSample;
-				HCHANNEL hSampleChannel;
-
-				BASS_Init(1, 44100, 0, 0, NULL);
-				hSample = BASS_SampleLoad(false, "data/sounds/explosion.wav", 0, 0, 1, 0);
-				hSampleChannel = BASS_SampleGetChannel(hSample, false);
+			
 				BASS_ChannelPlay(hSampleChannel, true);
 			}
 			else {
 				cout << "NPC crashed against terrain" << endl;
 				(*it)->crashed = true;
-				//Audio
-				HSAMPLE hSample;
-				HCHANNEL hSampleChannel;
-				BASS_3DVECTOR* explosionPos = new BASS_3DVECTOR((*it)->getGlobalMatrix().getTranslation().x, (*it)->getGlobalMatrix().getTranslation().y, (*it)->getGlobalMatrix().getTranslation().z);
-
 				
+				BASS_3DVECTOR* explosionPos = new BASS_3DVECTOR((*it)->getGlobalMatrix().getTranslation().x, (*it)->getGlobalMatrix().getTranslation().y, (*it)->getGlobalMatrix().getTranslation().z);
+				BASS_3DVECTOR* listenerPos = new BASS_3DVECTOR(planes[0]->getGlobalMatrix().getTranslation().x, planes[0]->getGlobalMatrix().getTranslation().y, planes[0]->getGlobalMatrix().getTranslation().z);
+				BASS_3DVECTOR* listenerFront = new BASS_3DVECTOR(planes[0]->getGlobalMatrix().rotateVector(Vector3(0, 0, -1)).x, planes[0]->getGlobalMatrix().rotateVector(Vector3(0, 0, -1)).y, planes[0]->getGlobalMatrix().rotateVector(Vector3(0, 0, -1)).z);
+				BASS_3DVECTOR* listenerTop = new BASS_3DVECTOR(planes[0]->getGlobalMatrix().rotateVector(Vector3(0, 1, 0)).x, planes[0]->getGlobalMatrix().rotateVector(Vector3(0, 1, 0)).y, planes[0]->getGlobalMatrix().rotateVector(Vector3(0, 1, 0)).z);
 
-				BASS_Init(1, 44100, 0, 0, NULL);
-				hSample = BASS_SampleLoad(false, "data/sounds/explosion.wav", 0, 0, 1, 0);
-				hSampleChannel = BASS_SampleGetChannel(hSample, false);
-				BASS_ChannelSet3DPosition(hSample, explosionPos, NULL, NULL);
-				BASS_ChannelPlay(hSampleChannel, true);
+				BASS_ChannelSet3DPosition(hSampleChannel, explosionPos, NULL, NULL);
+				BASS_Set3DPosition(listenerPos, NULL, listenerFront, listenerTop);
+				BASS_ChannelSet3DAttributes(hSampleChannel, 1, 10, 100, 360, 360, 1);
+				BASS_Apply3D();
+
+				BASS_ChannelPlay(hSampleChannel, false);
 			}			
 		}
 	}	

@@ -30,6 +30,9 @@ public:
 	EntityMesh* sea;
 	std::vector<Airplane*> planes;
 
+	HSAMPLE hSample;
+	HCHANNEL hSampleChannel;
+
 	//float lod_distance_threshold;
 
 	//CONSTRUCTORS

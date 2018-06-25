@@ -73,7 +73,10 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		crashed = false;
 		canShoot = true;
 		shootTimer = 0;
-		rate_of_fire = 25;
+		rate_of_fire = 10;
+		BASS_Init(1, 44100, 0, 0, NULL);
+		hSample = BASS_SampleLoad(false, "data/sounds/gunshot.wav", 0, 0, 1, 0);
+		hSampleChannel = BASS_SampleGetChannel(hSample, false);
 		break;
 	case LUFTWAFFE_BOMBER:
 		mesh_name = "data/assets/bomber/bomber_axis.ASE";
@@ -87,6 +90,8 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		crashed = false;
 		break;
 	}
+
+	
 
 	this->target = NULL;
 	//this->target = new Entity();
@@ -118,7 +123,7 @@ void Airplane::update(float dt)
 			if (!target) {
 				target = new Entity();
 			}
-			target->model.translate(getGlobalMatrix().getTranslation().x, 0, getGlobalMatrix().getTranslation().z - 500.0);
+			target->model.translate(getGlobalMatrix().getTranslation().x, 0, getGlobalMatrix().getTranslation().z - 300.0);
 			isAlive = false;
 		}
 	}
@@ -257,16 +262,8 @@ void Airplane::shootGun()
 	BulletManager::instance.createBullet(pos_right,vel, 0, this, 10);
 	BulletManager::instance.createBullet(pos_left, vel, 0, this, 10);
 	
-	
-
-	//Audio
-	HSAMPLE hSample;
-	HCHANNEL hSampleChannel;
-
-	BASS_Init(1, 44100, 0, 0, NULL);
-	hSample = BASS_SampleLoad(false, "data/sounds/gunshot.wav", 0, 0, 1, 0);
-	hSampleChannel = BASS_SampleGetChannel(hSample, false);
-	BASS_ChannelPlay(hSampleChannel, true);
+	//Audio	
+	BASS_ChannelPlay(this->hSampleChannel, true);
 }
 
 void Airplane::applyLookAt(Camera * camera)
@@ -312,7 +309,7 @@ Sea::Sea() : EntityMesh()
 
 void Sea::update(float dt)
 {
-
+	this->model.setTranslation(Camera::current->eye.x, 0, Camera::current->eye.z);
 }
 
 Torpedo::Torpedo() : EntityMesh()
@@ -401,6 +398,7 @@ void BulletManager::update(float dt)
 					if (!(*it)->is_player) {
 						cout << "Impact!" << endl;
 						(*it)->health -= bullet.damage;		
+						bullet.ttl = 0;
 					}
 				}	
 			}

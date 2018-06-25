@@ -7,6 +7,7 @@
 #include "camera.h"
 #include "game.h"
 #include "entity.h"
+#include "bass.h"
 
 using namespace std;
 
@@ -59,6 +60,9 @@ public:
 	bool canShoot;
 	float shootTimer;
 	int rate_of_fire;
+
+	HSAMPLE hSample;
+	HCHANNEL hSampleChannel;
 	
 	static vector<Airplane*> planes;
 
