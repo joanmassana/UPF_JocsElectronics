@@ -1,4 +1,5 @@
 #include "world.h"
+#include "game.h"
 #include "shader.h"
 #include "includes.h"
 #include "entity.h"
@@ -16,6 +17,7 @@ Entity* World::root = NULL;
 
 World::World()
 {
+	round = 1;
 	//Root
 	root = new Entity();
 	//Creamos el mundo
@@ -30,13 +32,12 @@ World::World()
 	this->sea = new Sea();
 	root->addChild(sea);
 
-	//Creamos otros aviones
-	for (int i = 0; i < 2; i++) {
-		if (i == 0) {
-			Airplane* airplane = new Airplane(RAF_FIGHTER, Vector3(0, 0, 0), true);
-			planes.push_back(airplane);
-		}
-		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(5000 - 100 + i*50, 1000, 5000 - 160), false);
+	//player
+	this->player = new Airplane(RAF_FIGHTER, Vector3(0, 0, 0), true);
+
+	//enemigos
+	for (int i = 0; i < planesPerRound[round - 1]; i++) {
+		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(1500 + i * 50, 800, 2000 + i * 100), false);
 		planes.push_back(airplane);
 	}
 
@@ -50,6 +51,7 @@ World::~World()
 {
 	delete root;
 	delete sky;
+	delete player;
 	planes.clear();
 }
 
@@ -63,6 +65,7 @@ void World::render(float dt)
 
 	//World render
 	root->render();
+	player->render();
 
 	//planes render
 	for (auto it = planes.begin(); it != planes.end(); ++it) {
@@ -82,6 +85,11 @@ void World::update(float dt)
 {
 	root->update(dt);
 	sky->update(dt);
+	player->update(dt);
+
+	checkIfRoundEnded();
+
+
 
 	for (auto it = planes.begin(); it != planes.end(); ++it) {
 		(*it)->update(dt);
@@ -96,7 +104,7 @@ void World::update(float dt)
 		Vector3 col_point;
 		Vector3 normal;
 
-		if (terrain->mesh->testRayCollision(terrain->model, (*it)->getGlobalMatrix().getTranslation(), front, col_point, normal, 1, false)) {
+		if (terrain->mesh->testRayCollision(terrain->model, (*it)->getGlobalMatrix().getTranslation(), front, col_point, normal, 10, false)) {
 			if ((*it)->is_player) {
 				cout << "Player crashed against terrain" << endl;
 				(*it)->crashed = true;
@@ -122,7 +130,7 @@ void World::update(float dt)
 			}			
 		}
 
-		if (sea->mesh->testRayCollision(sea->model, (*it)->getGlobalMatrix().getTranslation(), front, col_point, normal, 1, false)) {
+		if (sea->mesh->testRayCollision(sea->model, (*it)->getGlobalMatrix().getTranslation(), front, col_point, normal, 10, false)) {
 			if ((*it)->is_player) {
 				cout << "Player crashed against sea" << endl;
 				(*it)->crashed = true;
@@ -147,7 +155,34 @@ void World::update(float dt)
 				BASS_ChannelPlay(hSampleChannel, false);
 			}
 		}
-	}	
-	
+	}		
 	BulletManager::instance.update(dt);
 }
+
+
+
+void World::checkIfRoundEnded() {
+	for (auto it = planes.begin(); it != planes.end(); ++it) {
+		if (!(*it)->crashed) {
+			return;
+		}
+	}
+	cout << "All enemy planes have been destroyed" << endl;
+	planes.clear();
+	if (round == ROUNDS) {
+		Game::instance->state = END;
+		cout << "the END" << endl;
+	}
+	else {
+		this->round++;
+		player->ammo += player->ammo / 2;
+	}	
+	for (int i = 0; i < planesPerRound[round - 1]; i++) {
+		int n;
+		i % 2 == 0 ? n = 1 : n = -1;
+		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(1500 + i * n * 50, 800, 2000 + i * 100), false);
+		planes.push_back(airplane);
+	}
+	cout << "Round " << round << endl;
+}
+

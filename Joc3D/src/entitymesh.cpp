@@ -66,7 +66,7 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 	case RAF_FIGHTER:
 		mesh_name = "data/assets/spitfire/spitfire.ASE";
 		texture_name = "data/assets/spitfire/spitfire_color_spec.tga";
-		speed = 50;
+		speed = 0;
 		dirSpeed = 2;
 		health = 600;
 		isAlive = true;
@@ -74,7 +74,7 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		canShoot = true;
 		shootTimer = 0;
 		rate_of_fire = 10;
-		ammo = 2400;
+		ammo = 1000;
 		BASS_Init(1, 44100, 0, 0, NULL);
 		hSample = BASS_SampleLoad(false, "data/sounds/gunshot.wav", 0, 0, 1, 0);
 		hSampleChannel = BASS_SampleGetChannel(hSample, false);
@@ -84,7 +84,7 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		texture_name = "data/assets/bomber/bomber_axis.tga";
 		speed = 40;
 		dirSpeed = 1;
-		health = 400;
+		health = 50;
 		shootTimer = 0;
 		rate_of_fire = 10;
 		ammo = 1000;
@@ -95,11 +95,11 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 	
 	//this->target = NULL;
 	this->target = new Entity();
-	this->target->model.translate(1900.0, 1000.0, 2000.0);
+	this->target->model.translate(1900.0, 800.0, 2000.0);
 	
 	this->is_player = isPlayer;
 	if (is_player) {
-		this->model.translate(5000, 1000, 5000);
+		this->model.translate(1900, 800, 1900);
 	}
 	else {
 		this->model.translate(mod.x, mod.y, mod.z);
@@ -108,8 +108,8 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 	texture = Texture::Load(texture_name.c_str());
 	mesh = Mesh::Load(mesh_name.c_str());
 	
-	this->torpedo = new Torpedo();
-	this->addChild(torpedo);
+	//this->torpedo = new Torpedo();
+	//this->addChild(torpedo);
 }
 
 void Airplane::update(float dt)
@@ -134,9 +134,15 @@ void Airplane::update(float dt)
 		}
 		checkInput(dt);
 		Game::instance->cameraPlayer->lookAt(model*Vector3(0, 1.75, 10), model*Vector3(0, 0, -10), model.rotateVector(Vector3(0, 1, 0)));
+		Game::instance->cameraRight->lookAt(model*Vector3(-10, 1.75, 0), model*Vector3(0, 0, 0), model.rotateVector(Vector3(0, 1, 0)));
+		Game::instance->cameraLeft->lookAt(model*Vector3(10, 1.75, 0), model*Vector3(0, 0, 0), model.rotateVector(Vector3(0, 1, 0)));
+		Game::instance->cameraFront->lookAt(model*Vector3(0, 1.75, -10), model*Vector3(0, 0, 10), model.rotateVector(Vector3(0, 1, 0)));
 	}
 	else {
-		this->checkIA(dt);
+		/*if (!isAlive && speed < 100) {
+			speed = speed * 1.1 * dt;
+		}	*/	
+		this->checkIA(dt);				
 	}
 
 	for (int i = 0; i < children.size(); i++) {
@@ -171,6 +177,19 @@ void Airplane::checkInput(float dt)
 		}
 	}
 	if (Input::isKeyPressed(SDL_SCANCODE_B)) this->bomb();
+	if (Input::isKeyPressed(SDL_SCANCODE_1)) {
+		Game::instance->cameraCurrent = Game::instance->cameraFront;
+	}	else if(Input::isKeyPressed(SDL_SCANCODE_2)){
+		Game::instance->cameraCurrent = Game::instance->cameraLeft;
+	}	else if (Input::isKeyPressed(SDL_SCANCODE_3)) {
+		Game::instance->cameraCurrent = Game::instance->cameraRight;
+	}	else {
+		Game::instance->cameraCurrent = Game::instance->cameraPlayer;
+	}
+
+
+	
+
 
 }
 
@@ -368,7 +387,7 @@ void BulletManager::createBullet(Vector3 pos, Vector3 vel, char type, Airplane* 
 	b.type = type;
 	b.author = author;
 	b.ttl = ttl;
-	b.damage = 10;
+	b.damage = 8;
 
 	for (int i = 0; i < max_bullets; i++) {
 		Bullet& bullet = bullets[i];

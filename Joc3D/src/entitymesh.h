@@ -126,7 +126,7 @@ struct Bullet {
 	int damage;
 };
 
-const unsigned int max_bullets = 2400;
+const unsigned int max_bullets = 500;
 
 class BulletManager {
 public:

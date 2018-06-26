@@ -48,6 +48,18 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	cameraFree->lookAt(Vector3(0.f, 500.f, 100.f), Vector3(0.f, 400.f, 0.f), Vector3(0.f, 1.f, 0.f)); //position the camera and point to 0,0,0
 	cameraFree->setPerspective(70.f, window_width / (float)window_height, 0.1f, 10000.f); //set the projection, we want to be perspective
 
+	cameraRight = new Camera();
+	cameraRight->lookAt(Vector3(0.f, 500.f, 100.f), Vector3(0.f, 400.f, 0.f), Vector3(0.f, 1.f, 0.f)); //position the camera and point to 0,0,0
+	cameraRight->setPerspective(70.f, window_width / (float)window_height, 0.1f, 10000.f); //set the projection, we want to be perspective
+
+	cameraLeft = new Camera();
+	cameraLeft->lookAt(Vector3(0.f, 500.f, 100.f), Vector3(0.f, 400.f, 0.f), Vector3(0.f, 1.f, 0.f)); //position the camera and point to 0,0,0
+	cameraLeft->setPerspective(70.f, window_width / (float)window_height, 0.1f, 10000.f); //set the projection, we want to be perspective
+
+	cameraFront = new Camera();
+	cameraFront->lookAt(Vector3(0.f, 500.f, 100.f), Vector3(0.f, 400.f, 0.f), Vector3(0.f, 1.f, 0.f)); //position the camera and point to 0,0,0
+	cameraFront->setPerspective(70.f, window_width / (float)window_height, 0.1f, 10000.f); //set the projection, we want to be perspective
+
 	cameraCurrent = new Camera();
 	cameraCurrent = cameraPlayer;
 
@@ -75,6 +87,9 @@ void Game::render()
 		renderGameplay();
 		renderGUI();
 		break;
+	case PAUSE:
+		renderPause();
+		break;
 	case END:
 		renderEndScreen();
 		break;
@@ -84,8 +99,10 @@ void Game::render()
 }
 
 void Game::renderMenu() {
+
 	//set the clear color (the background color)
 	glClearColor(50.0 / 255.0, 50.0 / 255.0, 50.0 / 255.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	drawText(450, 450, "MENU", Vector3(1, 1, 1), 2);
 	//swap between front buffer and back buffer
 	SDL_GL_SwapWindow(this->window);
@@ -93,7 +110,6 @@ void Game::renderMenu() {
 
 void Game::renderGameplay() {
 
-	
 	//set the clear color (the background color)
 	glClearColor(56.0 / 255.0, 89.0 / 255.0, 137.0 / 255.0, 1.0);
 
@@ -111,7 +127,7 @@ void Game::renderGameplay() {
 
 	world->render(elapsed_time);
 
-	int a = world->planes[0]->ammo;
+	int a = world->player->ammo;
 	stringstream ss;
 	ss << "Ammo: ";
 	ss << a;
@@ -160,9 +176,17 @@ void Game::renderGUI() {
 
 }
 
+void Game::renderPause()
+{
+	drawText(450, 450, "PAUSE", Vector3(1, 1, 1), 2);
+	//swap between front buffer and back buffer
+	SDL_GL_SwapWindow(this->window);
+}
+
 void Game::renderEndScreen() {
 	//set the clear color (the background color)
 	glClearColor(50.0 / 255.0, 50.0 / 255.0, 50.0 / 255.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	drawText(450, 450, "GAME OVER", Vector3(1, 1, 1), 2);
 	//swap between front buffer and back buffer
 	SDL_GL_SwapWindow(this->window);
@@ -175,6 +199,9 @@ void Game::update(double seconds_elapsed) {
 		break;
 	case GAME:
 		updateGameplay(seconds_elapsed);
+		break;
+	case PAUSE:
+		updatePause();
 		break;
 	case END:
 		updateEndScreen();
@@ -193,6 +220,10 @@ void Game::updateMenu() {
 
 void Game::updateGameplay(double seconds_elapsed)
 {
+	if (Input::wasKeyPressed(SDL_SCANCODE_M)) {
+		state = PAUSE;
+	}
+
 	world->update(seconds_elapsed);
 	float speed = seconds_elapsed * 100; //the speed is defined by the seconds_elapsed so it goes constant
 
@@ -221,6 +252,13 @@ void Game::updateGameplay(double seconds_elapsed)
 	//to navigate with the mouse fixed in the middle
 	if (mouse_locked)
 		Input::centerMouse();
+}
+
+void Game::updatePause()
+{
+	if (Input::wasKeyPressed(SDL_SCANCODE_M)) {
+		state = GAME;
+	}
 }
 
 void Game::updateEndScreen() {

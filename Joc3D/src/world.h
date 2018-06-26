@@ -14,6 +14,8 @@ This class also stores the matrices used to do the transformation and projection
 #include "entity.h"
 #include "entitymesh.h"
 
+const int ROUNDS = 2;
+
 using namespace std;
 
 class Shader;
@@ -24,11 +26,15 @@ class World
 public:
 
 	//ATTRIBUTES
+	int round;
+	int planesPerRound[ROUNDS] = { 1,2 };
+	//int planesPerRound[ROUNDS] = { 1,1,2,2,2,3,3,3,4,5 };
 	static Entity* root;
 	EntityMesh* terrain;
 	EntityMesh* sky;
 	EntityMesh* sea;
 	EntityMesh* carrier;
+	Airplane* player;
 	std::vector<Airplane*> planes;
 
 	HSAMPLE hSample;
@@ -42,6 +48,7 @@ public:
 
 	//METHODS
 	virtual void render(float dt);
+	void checkIfRoundEnded();
 	virtual void update(float dt);
 
 };

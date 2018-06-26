@@ -11,7 +11,7 @@
  
 class Entity;
 
-enum GameState { MENU, GAME, END };
+enum GameState { MENU, GAME, PAUSE, END };
 
 class Game
 {
@@ -37,7 +37,13 @@ public:
 	Camera* cameraPlayer; //our global camera
 	Camera* cameraFree; //our global camera
 	Camera* cameraCurrent;
+	Camera* cameraRight;
+	Camera* cameraLeft;
+	Camera* cameraFront;
+
 	bool mouse_locked; //tells if the mouse is locked (not seen)
+
+	
 
 	Game( int window_width, int window_height, SDL_Window* window );
 
@@ -46,11 +52,13 @@ public:
 	void renderMenu();
 	void renderGameplay();
 	void renderGUI();
+	void renderPause();
 	void renderEndScreen();
 
 	void update( double dt );
 	void updateMenu();
 	void updateGameplay(double dt);
+	void updatePause();
 	void updateEndScreen();
 
 	//events
