@@ -11,6 +11,8 @@
  
 class Entity;
 
+enum GameState { MENU, GAME, END };
+
 class Game
 {
 public:
@@ -29,6 +31,8 @@ public:
 	int fps;
 	bool must_exit;
 
+	GameState state;
+
 	//some vars
 	Camera* cameraPlayer; //our global camera
 	Camera* cameraFree; //our global camera
@@ -38,8 +42,16 @@ public:
 	Game( int window_width, int window_height, SDL_Window* window );
 
 	//main functions
-	void render(  );
+	void render();
+	void renderMenu();
+	void renderGameplay();
+	void renderGUI();
+	void renderEndScreen();
+
 	void update( double dt );
+	void updateMenu();
+	void updateGameplay(double dt);
+	void updateEndScreen();
 
 	//events
 	void onKeyDown( SDL_KeyboardEvent event );

@@ -28,6 +28,7 @@ public:
 	EntityMesh* terrain;
 	EntityMesh* sky;
 	EntityMesh* sea;
+	EntityMesh* carrier;
 	std::vector<Airplane*> planes;
 
 	HSAMPLE hSample;

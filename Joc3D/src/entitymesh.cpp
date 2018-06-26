@@ -74,6 +74,7 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		canShoot = true;
 		shootTimer = 0;
 		rate_of_fire = 10;
+		ammo = 2400;
 		BASS_Init(1, 44100, 0, 0, NULL);
 		hSample = BASS_SampleLoad(false, "data/sounds/gunshot.wav", 0, 0, 1, 0);
 		hSampleChannel = BASS_SampleGetChannel(hSample, false);
@@ -86,20 +87,19 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		health = 80;
 		shootTimer = 0;
 		rate_of_fire = 10;
+		ammo = 1000;
 		isAlive = true;
 		crashed = false;
 		break;
 	}
-
 	
-
-	this->target = NULL;
-	//this->target = new Entity();
-	//this->target->model.translate(50000.0, 1000.0, -5000.0);
+	//this->target = NULL;
+	this->target = new Entity();
+	this->target->model.translate(1900.0, 1000.0, 2000.0);
 	
 	this->is_player = isPlayer;
 	if (is_player) {
-		this->model.translate(0, 1000, 0);
+		this->model.translate(5000, 1000, 5000);
 	}
 	else {
 		this->model.translate(mod.x, mod.y, mod.z);
@@ -114,10 +114,6 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 
 void Airplane::update(float dt)
 {
-	if (crashed) {
-		return;
-	}	
-	
 	if (isAlive) {
 		if (health <= 0) {
 			if (!target) {
@@ -126,12 +122,15 @@ void Airplane::update(float dt)
 			target->model.translate(getGlobalMatrix().getTranslation().x, 0, getGlobalMatrix().getTranslation().z - 300.0);
 			isAlive = false;
 		}
-	}
-
+	}	
 	//Movimiento hacia delante
 	model.translate(0, 0, -speed * dt);
 
 	if (is_player) {	//Camara se mueve con el avión
+		if (!isAlive) {
+			Game::instance->state = END;
+		}
+		cout << getGlobalMatrix().getTranslation().x << " - " << getGlobalMatrix().getTranslation().z << endl;
 		checkInput(dt);
 		Game::instance->cameraPlayer->lookAt(model*Vector3(0, 1.75, 10), model*Vector3(0, 0, -10), model.rotateVector(Vector3(0, 1, 0)));
 	}
@@ -301,10 +300,19 @@ void Sky::update(float dt)
 
 Sea::Sea() : EntityMesh()
 {
-	mesh_name = "data/assets/agua/agua.ASE";
+	Mesh* sub_div_plane = new Mesh();
+	sub_div_plane->createSubdividedPlane(100000, 10, true);
+	sub_div_plane->registerMesh("sub_div_mesh");
+
+	//mesh_name = "data/assets/agua/agua.ASE";
 	texture_name = "data/assets/agua/agua.tga";
 	texture = Texture::Load(texture_name.c_str());
+	//mesh = Mesh::Load(mesh_name.c_str());
+
+	mesh_name = "sub_div_mesh";
 	mesh = Mesh::Load(mesh_name.c_str());
+	shader = Shader::Load("data/shaders/basic.vs", "data/shaders/water.fs");
+
 }
 
 void Sea::update(float dt)
@@ -331,6 +339,20 @@ void Torpedo::update(float dt)
 	}
 }
 
+Carrier::Carrier() : EntityMesh()
+{
+	mesh_name = "data/assets/carrier/aircarrier.ASE";
+	texture_name = "data/assets/carrier/aircarrier_metal.tga";
+	texture = Texture::Load(texture_name.c_str());
+	mesh = Mesh::Load(mesh_name.c_str());
+	model.translate(1900, 0, 2000);
+}
+
+void Carrier::update(float dt)
+{
+	
+}
+
 BulletManager::BulletManager()
 {
 	memset(&bullets, 0, sizeof(bullets));
@@ -352,7 +374,6 @@ void BulletManager::createBullet(Vector3 pos, Vector3 vel, char type, Airplane* 
 			continue;
 		}
 		bullet = b;
-		bulletsLeft--;
 		break;
 	}
 }

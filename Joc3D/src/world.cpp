@@ -23,6 +23,9 @@ World::World()
 	root->addChild(terrain);
 
 	this->sky = new Sky();
+
+	this->carrier = new Carrier();
+	root->addChild(carrier);
 	
 	this->sea = new Sea();
 	root->addChild(sea);
@@ -33,7 +36,7 @@ World::World()
 			Airplane* airplane = new Airplane(RAF_FIGHTER, Vector3(0, 0, 0), true);
 			planes.push_back(airplane);
 		}
-		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(-100 + i*50, 1000, -160), false);
+		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(5000 - 100 + i*50, 1000, 5000 - 160), false);
 		planes.push_back(airplane);
 	}
 
@@ -45,7 +48,9 @@ World::World()
 
 World::~World()
 {
-
+	delete root;
+	delete sky;
+	planes.clear();
 }
 
 void World::render(float dt)
@@ -95,6 +100,7 @@ void World::update(float dt)
 			if ((*it)->is_player) {
 				cout << "Player crashed against terrain" << endl;
 				(*it)->crashed = true;
+				(*it)->isAlive = false;
 			
 				BASS_ChannelPlay(hSampleChannel, true);
 			}
@@ -114,6 +120,32 @@ void World::update(float dt)
 
 				BASS_ChannelPlay(hSampleChannel, false);
 			}			
+		}
+
+		if (sea->mesh->testRayCollision(sea->model, (*it)->getGlobalMatrix().getTranslation(), front, col_point, normal, 1, false)) {
+			if ((*it)->is_player) {
+				cout << "Player crashed against sea" << endl;
+				(*it)->crashed = true;
+				(*it)->isAlive = false;
+
+				BASS_ChannelPlay(hSampleChannel, true);
+			}
+			else {
+				cout << "NPC crashed against sea" << endl;
+				(*it)->crashed = true;
+
+				BASS_3DVECTOR* explosionPos = new BASS_3DVECTOR((*it)->getGlobalMatrix().getTranslation().x, (*it)->getGlobalMatrix().getTranslation().y, (*it)->getGlobalMatrix().getTranslation().z);
+				BASS_3DVECTOR* listenerPos = new BASS_3DVECTOR(planes[0]->getGlobalMatrix().getTranslation().x, planes[0]->getGlobalMatrix().getTranslation().y, planes[0]->getGlobalMatrix().getTranslation().z);
+				BASS_3DVECTOR* listenerFront = new BASS_3DVECTOR(planes[0]->getGlobalMatrix().rotateVector(Vector3(0, 0, -1)).x, planes[0]->getGlobalMatrix().rotateVector(Vector3(0, 0, -1)).y, planes[0]->getGlobalMatrix().rotateVector(Vector3(0, 0, -1)).z);
+				BASS_3DVECTOR* listenerTop = new BASS_3DVECTOR(planes[0]->getGlobalMatrix().rotateVector(Vector3(0, 1, 0)).x, planes[0]->getGlobalMatrix().rotateVector(Vector3(0, 1, 0)).y, planes[0]->getGlobalMatrix().rotateVector(Vector3(0, 1, 0)).z);
+
+				BASS_ChannelSet3DPosition(hSampleChannel, explosionPos, NULL, NULL);
+				BASS_Set3DPosition(listenerPos, NULL, listenerFront, listenerTop);
+				BASS_ChannelSet3DAttributes(hSampleChannel, 1, 10, 100, 360, 360, 1);
+				BASS_Apply3D();
+
+				BASS_ChannelPlay(hSampleChannel, false);
+			}
 		}
 	}	
 	

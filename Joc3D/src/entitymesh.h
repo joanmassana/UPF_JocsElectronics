@@ -60,6 +60,7 @@ public:
 	bool canShoot;
 	float shootTimer;
 	int rate_of_fire;
+	int ammo;
 
 	HSAMPLE hSample;
 	HCHANNEL hSampleChannel;
@@ -109,6 +110,13 @@ public:
 	void update(float dt);
 };
 
+class Carrier : public EntityMesh {
+public:
+	int health;
+	Carrier();
+	void update(float dt);
+};
+
 struct Bullet {
 	char type;
 	Vector3 position;
@@ -124,7 +132,6 @@ class BulletManager {
 public:
 	Bullet bullets[max_bullets];
 	static BulletManager instance;
-	int bulletsLeft = max_bullets;
 
 	BulletManager();
 	void createBullet(Vector3 pos, Vector3 vel, char type, Airplane* author, float ttl);
