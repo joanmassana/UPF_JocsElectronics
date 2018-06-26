@@ -99,13 +99,29 @@ void Game::render()
 }
 
 void Game::renderMenu() {
-
 	//set the clear color (the background color)
 	glClearColor(50.0 / 255.0, 50.0 / 255.0, 50.0 / 255.0, 1.0);
+
+	// Clear the window and the depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	drawText(450, 450, "MENU", Vector3(1, 1, 1), 2);
+
+	Mesh* m = new Mesh();
+	m->createQuad(100, 100, 50, 50, false);
+	menuImage = new EntityMesh();
+	menuImage->mesh = m;
+
+	Shader* shader = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
+	shader->enable();
+	shader->setTexture("u_texture", Texture::Load("data/assets/gui/crosshair.tga"));
+	shader->setUniform4("u_color", Vector4(1, 1, 0, 1));
+	menuImage->mesh->render(GL_TRIANGLES, shader);
+	shader->disable();
+
 	//swap between front buffer and back buffer
-	SDL_GL_SwapWindow(this->window);
+	SDL_GL_SwapWindow(this->window);	
+	
 }
 
 void Game::renderGameplay() {

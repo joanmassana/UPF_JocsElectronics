@@ -10,6 +10,7 @@
 #include "utils.h"
  
 class Entity;
+class EntityMesh;
 
 enum GameState { MENU, GAME, PAUSE, END };
 
@@ -18,6 +19,8 @@ class Game
 public:
 	static Game* instance;
 	Entity* sky;
+
+	EntityMesh* menuImage;
 
 	//window
 	SDL_Window* window;
