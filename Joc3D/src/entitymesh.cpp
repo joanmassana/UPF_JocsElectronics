@@ -68,7 +68,7 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		texture_name = "data/assets/spitfire/spitfire_color_spec.tga";
 		speed = 50;
 		dirSpeed = 2;
-		health = 100;
+		health = 600;
 		isAlive = true;
 		crashed = false;
 		canShoot = true;
@@ -84,7 +84,7 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		texture_name = "data/assets/bomber/bomber_axis.tga";
 		speed = 40;
 		dirSpeed = 1;
-		health = 80;
+		health = 400;
 		shootTimer = 0;
 		rate_of_fire = 10;
 		ammo = 1000;
@@ -119,7 +119,9 @@ void Airplane::update(float dt)
 			if (!target) {
 				target = new Entity();
 			}
-			target->model.translate(getGlobalMatrix().getTranslation().x, 0, getGlobalMatrix().getTranslation().z - 300.0);
+			cout << "Target: " << target->getGlobalMatrix().getTranslation().x << ", " << target->getGlobalMatrix().getTranslation().y << ", " << target->getGlobalMatrix().getTranslation().z << ", " << endl;
+			target->model.setTranslation(getGlobalMatrix().getTranslation().x, 0, getGlobalMatrix().getTranslation().z - 500.0);
+			cout << "New target: " << target->getGlobalMatrix().getTranslation().x << ", " << target->getGlobalMatrix().getTranslation().y << ", " << target->getGlobalMatrix().getTranslation().z << ", " << endl;
 			isAlive = false;
 		}
 	}	
@@ -130,7 +132,6 @@ void Airplane::update(float dt)
 		if (!isAlive) {
 			Game::instance->state = END;
 		}
-		cout << getGlobalMatrix().getTranslation().x << " - " << getGlobalMatrix().getTranslation().z << endl;
 		checkInput(dt);
 		Game::instance->cameraPlayer->lookAt(model*Vector3(0, 1.75, 10), model*Vector3(0, 0, -10), model.rotateVector(Vector3(0, 1, 0)));
 	}
@@ -164,7 +165,7 @@ void Airplane::checkInput(float dt)
 		}
 		else {
 			shootTimer += dt;
-			if (shootTimer > (1 / rate_of_fire)) {
+			if (shootTimer > (1 / rate_of_fire) && ammo > 0) {
 				canShoot = true;
 			}
 		}
@@ -260,9 +261,10 @@ void Airplane::shootGun()
 	Vector3 vel = getGlobalMatrix().rotateVector(Vector3(0,0,-500));
 	BulletManager::instance.createBullet(pos_right,vel, 0, this, 10);
 	BulletManager::instance.createBullet(pos_left, vel, 0, this, 10);
+	this->ammo--;
 	
 	//Audio	
-	BASS_ChannelPlay(this->hSampleChannel, true);
+	//BASS_ChannelPlay(this->hSampleChannel, true);
 }
 
 void Airplane::applyLookAt(Camera * camera)

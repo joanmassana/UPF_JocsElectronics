@@ -61,7 +61,7 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	BASS_Init(1, 44100, 0, 0, NULL);
 	hSample = BASS_SampleLoad(false, "data/sounds/music.mp3", 0, 0, 3, BASS_SAMPLE_LOOP);
 	hSampleChannel = BASS_SampleGetChannel(hSample, false);
-	BASS_ChannelPlay(hSampleChannel, true);
+	//BASS_ChannelPlay(hSampleChannel, true);
 }
 
 //what to do when the image has to be draw
