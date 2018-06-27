@@ -75,7 +75,8 @@ public:
 	static void renderPlaneFinder();
 	void update(float dt);
 	void bomb();
-	void shootGun();
+	void shootGun_player();
+	void shootGun_enemy();
 	void checkInput(float dt); //BLOQUE IA
 	void checkIA(float dt); //BLOQUE IA
 	void goToTarget(float dt, Entity* target);
@@ -135,7 +136,7 @@ struct Bullet {
 	int damage;
 };
 
-const unsigned int max_bullets = 500;
+const unsigned int max_bullets = 2500;
 
 class BulletManager {
 public:

@@ -69,6 +69,7 @@ void World::render(float dt)
 	glEnable(GL_DEPTH_TEST);
 
 	//World render
+
 	root->render();
 	player->render();
 	Airplane::renderPlaneFinder();

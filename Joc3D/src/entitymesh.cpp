@@ -87,7 +87,7 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		dirSpeed = 1;
 		health = 50;
 		shootTimer = 0;
-		rate_of_fire = 3;
+		rate_of_fire = 2;
 		ammo = 1000;
 		isAlive = true;
 		crashed = false;
@@ -118,6 +118,7 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 
 void Airplane::update(float dt)
 {
+	
 	if (isAlive && !is_player) {
 		if (health <= 0) {
 			Game::instance->enemyPlanesDestroyed++;			
@@ -136,6 +137,7 @@ void Airplane::update(float dt)
 		if (!isAlive) {
 			Game::instance->state = END;
 		}
+		
 		checkInput(dt);
 		Game::instance->cameraPlayer->lookAt(model*Vector3(0, 1.75, 10), model*Vector3(0, 0, -10), model.rotateVector(Vector3(0, 1, 0)));
 		Game::instance->cameraRight->lookAt(model*Vector3(-10, 1.75, 0), model*Vector3(0, 0, 0), model.rotateVector(Vector3(0, 1, 0)));
@@ -169,7 +171,7 @@ void Airplane::checkInput(float dt)
 	if (Input::isKeyPressed(SDL_SCANCODE_O)) this->speed -= 20 * dt;
 	if (Input::isKeyPressed(SDL_SCANCODE_SPACE)) {
 		if (canShoot) {
-			this->shootGun();
+			this->shootGun_player();
 			canShoot = false;
 			shootTimer = 0;
 		}
@@ -207,6 +209,9 @@ void Airplane::checkIA(float dt) //BLOQUE IA
 		}
 		
 	}	
+	if ((World::instance->player->getGlobalMatrix().getTranslation()-this->getGlobalMatrix().getTranslation()).length() < 500 && isAlive) {
+		shootGun_enemy();
+	}
 	return;
 }
 
@@ -287,7 +292,7 @@ void Airplane::bomb()
 	cout << "Payload fired" << endl;
 }
 
-void Airplane::shootGun()
+void Airplane::shootGun_player()
 {
 	Vector3 pos_right = getGlobalMatrix() * Vector3(1.9,0,-1.9);
 	Vector3 pos_left = getGlobalMatrix() * Vector3(-1.9, 0, -1.9);
@@ -296,6 +301,24 @@ void Airplane::shootGun()
 	BulletManager::instance.createBullet(pos_left, vel, 0, this, 10);
 	this->ammo--;
 	
+	//Audio	
+	BASS_ChannelSetAttribute(this->hSampleChannel, BASS_ATTRIB_VOL, 0.1);
+	BASS_ChannelPlay(this->hSampleChannel, true);
+}
+
+void Airplane::shootGun_enemy()
+{
+	Vector3 pos = getGlobalMatrix() * Vector3(0, 1, 0);
+	float rx = rand() % 20 - 10;
+	float ry = rand() % 20 - 10;
+	float rz = rand() % 20 - 10;
+	Vector3 ran = Vector3(rx, ry, rz);
+	Vector3 dir = (World::instance->player->getGlobalMatrix() * World::instance->player->mesh->box.center) - this->getGlobalMatrix().getTranslation();
+	cout << dir.x << ", " << dir.y << ", " << dir.z << endl;
+	dir.normalize();
+	Vector3 vel = getGlobalMatrix().rotateVector(dir*500);
+	BulletManager::instance.createBullet(pos, vel, 0, this, 10);
+
 	//Audio	
 	BASS_ChannelSetAttribute(this->hSampleChannel, BASS_ATTRIB_VOL, 0.1);
 	BASS_ChannelPlay(this->hSampleChannel, true);
@@ -427,7 +450,7 @@ void BulletManager::createBullet(Vector3 pos, Vector3 vel, char type, Airplane* 
 	b.velocity = vel;
 	b.type = type;
 	b.author = author;
-	b.ttl = ttl;
+	b.ttl = 2;
 	b.damage = 15;
 
 	for (int i = 0; i < max_bullets; i++) {
@@ -451,7 +474,7 @@ void BulletManager::render()
 		m.vertices.push_back(bullet.position);
 	}
 	glColor4f(1,1,0.3,1);
-	glPointSize(4);
+	glPointSize(3);
 	if(m.vertices.size() > 0) {
 		m.renderFixedPipeline(GL_POINTS);
 	}
@@ -468,7 +491,7 @@ void BulletManager::update(float dt)
 		bullet.position = bullet.position + bullet.velocity * dt;
 		bullet.velocity = bullet.velocity + Vector3(0,-dt*10,0);
 
-		//Detectar colision bala-avion
+		//Detectar colision bala-avion enemigo
 		for (auto it = Airplane::planes.begin(); it != Airplane::planes.end(); ++it) {
 
 			Vector3 front = bullet.velocity;
@@ -478,7 +501,7 @@ void BulletManager::update(float dt)
 
 			if ((*it)->mesh->testRayCollision((*it)->model, bullet.position, front, col_point, normal, 1, false)) {
 				if ((*it)->isAlive) {
-					if (!(*it)->is_player) {
+					if (!(*it)->is_player && bullet.author == World::instance->player) {
 						cout << "Impact!" << endl;
 						(*it)->health -= bullet.damage;		
 						bullet.ttl = 0;
@@ -486,6 +509,24 @@ void BulletManager::update(float dt)
 				}	
 			}
 		}
+
+		//Detectar colision bala-avion player	
+
+		Vector3 front = bullet.velocity;
+		front.normalize();
+		Vector3 col_point;
+		Vector3 normal;
+
+		if (World::instance->player->mesh->testRayCollision(World::instance->player->model, bullet.position, front, col_point, normal, 1, false)) {
+			if (World::instance->player->isAlive) {
+				if (bullet.author != World::instance->player) {
+					cout << "You're hit!" << endl;
+					World::instance->player->health -= bullet.damage;
+					bullet.ttl = 0;
+				}
+			}
+		}
+		
 	}
 }
 
