@@ -61,41 +61,47 @@ void EntityMesh::update(float dt)
 
 Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 {	
-	planes.push_back(this);
 	switch (type) {
 	case RAF_FIGHTER:
 		mesh_name = "data/assets/spitfire/spitfire.ASE";
 		texture_name = "data/assets/spitfire/spitfire_color_spec.tga";
-		speed = 0;
+		speed = 40;
 		dirSpeed = 2;
 		health = 600;
 		isAlive = true;
 		crashed = false;
 		canShoot = true;
 		shootTimer = 0;
-		rate_of_fire = 10;
+		rate_of_fire = 4;
 		ammo = 1000;
 		BASS_Init(1, 44100, 0, 0, NULL);
 		hSample = BASS_SampleLoad(false, "data/sounds/gunshot.wav", 0, 0, 1, 0);
 		hSampleChannel = BASS_SampleGetChannel(hSample, false);
+		torpedo = NULL;
 		break;
 	case LUFTWAFFE_BOMBER:
+		planes.push_back(this);
 		mesh_name = "data/assets/bomber/bomber_axis.ASE";
 		texture_name = "data/assets/bomber/bomber_axis.tga";
 		speed = 40;
 		dirSpeed = 1;
 		health = 50;
 		shootTimer = 0;
-		rate_of_fire = 10;
+		rate_of_fire = 3;
 		ammo = 1000;
 		isAlive = true;
 		crashed = false;
+		target = new Entity();
+		target->model.translate(1800.0, 650, 2400.0);
+		float rx = rand() % 2000 - 1000;
+		float ry = rand() % 2000 - 1000;
+		finish = new Entity();
+		finish->model.translate(target->getGlobalMatrix().getTranslation().x + (target->getGlobalMatrix().getTranslation().x - mod.x)*2 + rx, 1000, target->getGlobalMatrix().getTranslation().z + (target->getGlobalMatrix().getTranslation().z - mod.z) * 2 + ry);
+		torpedo = new Torpedo();
+		torpedo->model.translate(0,-1,0);
+		addChild(torpedo);
 		break;
 	}
-	
-	//this->target = NULL;
-	this->target = new Entity();
-	this->target->model.translate(1900.0, 800.0, 2000.0);
 	
 	this->is_player = isPlayer;
 	if (is_player) {
@@ -108,19 +114,17 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 	texture = Texture::Load(texture_name.c_str());
 	mesh = Mesh::Load(mesh_name.c_str());
 	
-	//this->torpedo = new Torpedo();
-	//this->addChild(torpedo);
 }
 
 void Airplane::update(float dt)
 {
-	if (isAlive) {
+	if (isAlive && !is_player) {
 		if (health <= 0) {
-			if (!target) {
-				target = new Entity();
-			}
-			cout << "Target: " << target->getGlobalMatrix().getTranslation().x << ", " << target->getGlobalMatrix().getTranslation().y << ", " << target->getGlobalMatrix().getTranslation().z << ", " << endl;
-			target->model.setTranslation(getGlobalMatrix().getTranslation().x, 0, getGlobalMatrix().getTranslation().z - 500.0);
+			Game::instance->enemyPlanesDestroyed++;			
+			float rx = rand() % 2000 - 1000;
+			float rz = rand() % 2000 - 1000;
+			//cout << "Target: " << target->getGlobalMatrix().getTranslation().x << ", " << target->getGlobalMatrix().getTranslation().y << ", " << target->getGlobalMatrix().getTranslation().z << ", " << endl;
+			target->model.setTranslation(getGlobalMatrix().getTranslation().x + rx, 0, getGlobalMatrix().getTranslation().z + rz);
 			cout << "New target: " << target->getGlobalMatrix().getTranslation().x << ", " << target->getGlobalMatrix().getTranslation().y << ", " << target->getGlobalMatrix().getTranslation().z << ", " << endl;
 			isAlive = false;
 		}
@@ -139,9 +143,9 @@ void Airplane::update(float dt)
 		Game::instance->cameraFront->lookAt(model*Vector3(0, 1.75, -10), model*Vector3(0, 0, 10), model.rotateVector(Vector3(0, 1, 0)));
 	}
 	else {
-		/*if (!isAlive && speed < 100) {
-			speed = speed * 1.1 * dt;
-		}	*/	
+		if (!isAlive && speed < 60) {
+			speed = speed + 10 * dt;
+		}	
 		this->checkIA(dt);				
 	}
 
@@ -186,26 +190,32 @@ void Airplane::checkInput(float dt)
 	}	else {
 		Game::instance->cameraCurrent = Game::instance->cameraPlayer;
 	}
-
-
-	
-
-
 }
 
 void Airplane::checkIA(float dt) //BLOQUE IA
-{
-	if (target) {		
-		goToTarget(dt);
+{	
+	if (!isAlive) {
+		goToTarget(dt, target);
 	}
+	else {
+		torpedo ? goToTarget(dt, target) : goToTarget(dt, finish);
+		if (targetReached(target)) bomb();		
+		if (targetReached(finish)) {
+			cout << "Finish Reached" << endl;
+			isAlive = false;
+			crashed = true;
+		}
+		
+	}	
 	return;
 }
 
-void Airplane::goToTarget(float dt) //BLOQUE IA
+void Airplane::goToTarget(float dt, Entity* t) //BLOQUE IA
 {
+	if (!t) return;
 	//Rotar hacia el enemigo
 	Vector3 pos = getGlobalMatrix().getTranslation();
-	Vector3 target_pos = target->getGlobalMatrix().getTranslation();
+	Vector3 target_pos = t->getGlobalMatrix().getTranslation();
 	Vector3 front = getGlobalMatrix().rotateVector(Vector3(0, 0, -1));
 
 	if (pos.y < 500) {
@@ -257,6 +267,10 @@ void Airplane::goToTarget(float dt) //BLOQUE IA
 
 }
 
+bool Airplane::targetReached(Entity* t) {
+	return ((getGlobalMatrix().getTranslation() - t->getGlobalMatrix().getTranslation()).length() < 50);
+}
+
 void Airplane::bomb()
 {
 	if (!torpedo) {
@@ -283,12 +297,28 @@ void Airplane::shootGun()
 	this->ammo--;
 	
 	//Audio	
-	//BASS_ChannelPlay(this->hSampleChannel, true);
+	BASS_ChannelSetAttribute(this->hSampleChannel, BASS_ATTRIB_VOL, 0.1);
+	BASS_ChannelPlay(this->hSampleChannel, true);
 }
 
 void Airplane::applyLookAt(Camera * camera)
 {
 
+}
+
+void Airplane::renderPlaneFinder()
+{
+	Mesh m;
+	for (int i = 0; i < planes.size(); i++) {	
+		if (planes[i]->isAlive) {
+			m.vertices.push_back(planes[i]->getGlobalMatrix().getTranslation());
+		}		
+	}
+	glColor4f(0.65, 0, 0, 1);
+	glPointSize(8);
+	if (m.vertices.size() > 0) {
+		m.renderFixedPipeline(GL_POINTS);
+	}
 }
 
 Terrain::Terrain() : EntityMesh()
@@ -355,7 +385,7 @@ Torpedo::Torpedo() : EntityMesh()
 void Torpedo::update(float dt)
 {
 	if (is_on && time_of_life > 0) {
-		model.translate(0, -dt * 10, 0);
+		model.translate(0, -dt * 100, 0);
 		time_of_life -= dt;
 	}
 }
@@ -387,7 +417,7 @@ void BulletManager::createBullet(Vector3 pos, Vector3 vel, char type, Airplane* 
 	b.type = type;
 	b.author = author;
 	b.ttl = ttl;
-	b.damage = 8;
+	b.damage = 15;
 
 	for (int i = 0; i < max_bullets; i++) {
 		Bullet& bullet = bullets[i];

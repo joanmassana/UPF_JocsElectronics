@@ -68,16 +68,25 @@ public:
 	static vector<Airplane*> planes;
 
 	Entity* target; //BLOQUE IA
+	Entity* finish;
 
 	Airplane(AircraftType type, Vector3 mod, bool isPlayer);
 	void applyLookAt(Camera* camera);
+	static void renderPlaneFinder();
 	void update(float dt);
 	void bomb();
 	void shootGun();
 	void checkInput(float dt); //BLOQUE IA
 	void checkIA(float dt); //BLOQUE IA
-	void goToTarget(float dt);
+	void goToTarget(float dt, Entity* target);
+
+	bool targetReached(Entity* target);
 	
+};
+
+struct Route {
+	Entity* target;
+	Entity* finish;
 };
 
 class Torpedo : public EntityMesh {

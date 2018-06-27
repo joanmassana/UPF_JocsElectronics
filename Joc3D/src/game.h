@@ -35,6 +35,7 @@ public:
 	bool must_exit;
 
 	GameState state;
+	int enemyPlanesDestroyed;
 
 	//some vars
 	Camera* cameraPlayer; //our global camera

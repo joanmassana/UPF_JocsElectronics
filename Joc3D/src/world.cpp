@@ -36,8 +36,10 @@ World::World()
 	this->player = new Airplane(RAF_FIGHTER, Vector3(0, 0, 0), true);
 
 	//enemigos
+	float rx = rand() % 5000 - 2500;
+	float rz = rand() % 5000 - 2500;
 	for (int i = 0; i < planesPerRound[round - 1]; i++) {
-		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(1500 + i * 50, 800, 2000 + i * 100), false);
+		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(1500 + i * 50 + rx, 600, 2000 + i * 100 + rz), false);
 		planes.push_back(airplane);
 	}
 
@@ -66,13 +68,14 @@ void World::render(float dt)
 	//World render
 	root->render();
 	player->render();
-
+	Airplane::renderPlaneFinder();
 	//planes render
 	for (auto it = planes.begin(); it != planes.end(); ++it) {
 		(*it)->render();
 	}
 	
 	BulletManager::instance.render();
+	
 	
 	
 
@@ -90,6 +93,27 @@ void World::update(float dt)
 	checkIfRoundEnded();
 
 
+	Vector3 front = player->getGlobalMatrix().rotateVector(Vector3(0, 0, -1));
+	front.normalize();
+	Vector3 col_point;
+	Vector3 normal;
+
+	if (terrain->mesh->testRayCollision(terrain->model, player->getGlobalMatrix().getTranslation(), front, col_point, normal, 10, false)) {
+		cout << "Player crashed against terrain" << endl;
+		player->crashed = true;
+		player->isAlive = false;
+
+		BASS_ChannelPlay(hSampleChannel, true);
+	}
+	if (sea->mesh->testRayCollision(sea->model, player->getGlobalMatrix().getTranslation(), front, col_point, normal, 10, false)) {
+		cout << "Player crashed against terrain" << endl;
+		player->crashed = true;
+		player->isAlive = false;
+
+		BASS_ChannelPlay(hSampleChannel, true);
+	}
+
+
 
 	for (auto it = planes.begin(); it != planes.end(); ++it) {
 		(*it)->update(dt);
@@ -99,12 +123,12 @@ void World::update(float dt)
 		}
 		
 		//Detectar colision avion-terreno
-		Vector3 front = (*it)->getGlobalMatrix().rotateVector(Vector3(0, 0, -1));
-		front.normalize();
-		Vector3 col_point;
-		Vector3 normal;
+		Vector3 f = (*it)->getGlobalMatrix().rotateVector(Vector3(0, 0, -1));
+		f.normalize();
+		Vector3 c;
+		Vector3 n;
 
-		if (terrain->mesh->testRayCollision(terrain->model, (*it)->getGlobalMatrix().getTranslation(), front, col_point, normal, 10, false)) {
+		if (terrain->mesh->testRayCollision(terrain->model, (*it)->getGlobalMatrix().getTranslation(), f, c, n, 10, false)) {
 			if ((*it)->is_player) {
 				cout << "Player crashed against terrain" << endl;
 				(*it)->crashed = true;
@@ -130,7 +154,7 @@ void World::update(float dt)
 			}			
 		}
 
-		if (sea->mesh->testRayCollision(sea->model, (*it)->getGlobalMatrix().getTranslation(), front, col_point, normal, 10, false)) {
+		if (sea->mesh->testRayCollision(sea->model, (*it)->getGlobalMatrix().getTranslation(), f, c, n, 10, false)) {
 			if ((*it)->is_player) {
 				cout << "Player crashed against sea" << endl;
 				(*it)->crashed = true;
@@ -169,6 +193,7 @@ void World::checkIfRoundEnded() {
 	}
 	cout << "All enemy planes have been destroyed" << endl;
 	planes.clear();
+	Airplane::planes.clear();
 	if (round == ROUNDS) {
 		Game::instance->state = END;
 		cout << "the END" << endl;
@@ -177,10 +202,11 @@ void World::checkIfRoundEnded() {
 		this->round++;
 		player->ammo += player->ammo / 2;
 	}	
+	
+	float rx = rand() % 5000 - 2500;
+	float rz = rand() % 5000 - 2500;
 	for (int i = 0; i < planesPerRound[round - 1]; i++) {
-		int n;
-		i % 2 == 0 ? n = 1 : n = -1;
-		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(1500 + i * n * 50, 800, 2000 + i * 100), false);
+		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(1500 + i * 50 + rx, 600, 2000 + i * 100 + rz), false);
 		planes.push_back(airplane);
 	}
 	cout << "Round " << round << endl;

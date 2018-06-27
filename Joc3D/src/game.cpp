@@ -26,6 +26,7 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	must_exit = false;
 
 	state = MENU;
+	enemyPlanesDestroyed = 0;
 	glClearColor(0, 0, 0, 1);
 
 	fps = 0;
@@ -73,7 +74,8 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	BASS_Init(1, 44100, 0, 0, NULL);
 	hSample = BASS_SampleLoad(false, "data/sounds/music.mp3", 0, 0, 3, BASS_SAMPLE_LOOP);
 	hSampleChannel = BASS_SampleGetChannel(hSample, false);
-	//BASS_ChannelPlay(hSampleChannel, true);
+	BASS_ChannelSetAttribute(hSampleChannel, BASS_ATTRIB_VOL, 1);
+	BASS_ChannelPlay(hSampleChannel, true);
 }
 
 //what to do when the image has to be draw
@@ -144,14 +146,22 @@ void Game::renderGameplay() {
 	world->render(elapsed_time);
 
 	int a = world->player->ammo;
-	stringstream ss;
-	ss << "Ammo: ";
-	ss << a;
-	string str = ss.str();
+	stringstream ss1;
+	ss1 << "Ammo: ";
+	ss1 << a;
+	string ammostr = ss1.str();
+
+	stringstream ss2;
+	ss2 << "Planes shot down: ";
+	ss2 << enemyPlanesDestroyed;
+	string planesstr = ss2.str();
+
+	
 
 	//render the FPS
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
-	drawText(600, 2, str, Vector3(1, 1, 1), 2);
+	drawText(575, 2, ammostr, Vector3(1, 1, 1), 2);
+	drawText(750, 2, planesstr, Vector3(1, 1, 1), 2);
 
 	//swap between front buffer and back buffer
 	SDL_GL_SwapWindow(this->window);
@@ -203,7 +213,14 @@ void Game::renderEndScreen() {
 	//set the clear color (the background color)
 	glClearColor(50.0 / 255.0, 50.0 / 255.0, 50.0 / 255.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	drawText(450, 450, "GAME OVER", Vector3(1, 1, 1), 2);
+	drawText(450, 400, "GAME OVER", Vector3(1, 1, 1), 2);
+
+	stringstream ss;
+	ss << "Planes shot down: ";
+	ss << enemyPlanesDestroyed;
+	string str = ss.str();
+
+	drawText(450, 475, str, Vector3(1, 1, 1), 2);
 	//swap between front buffer and back buffer
 	SDL_GL_SwapWindow(this->window);
 }
