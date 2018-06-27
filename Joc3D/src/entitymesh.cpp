@@ -77,7 +77,7 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		BASS_Init(1, 44100, 0, 0, NULL);
 		hSample = BASS_SampleLoad(false, "data/sounds/gunshot.wav", 0, 0, 1, 0);
 		hSampleChannel = BASS_SampleGetChannel(hSample, false);
-		torpedo = NULL;
+		payload = NULL;
 		break;
 	case LUFTWAFFE_BOMBER:
 		planes.push_back(this);
@@ -97,9 +97,9 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		float ry = rand() % 2000 - 1000;
 		finish = new Entity();
 		finish->model.translate(target->getGlobalMatrix().getTranslation().x + (target->getGlobalMatrix().getTranslation().x - mod.x)*2 + rx, 2000, target->getGlobalMatrix().getTranslation().z + (target->getGlobalMatrix().getTranslation().z - mod.z) * 2 + ry);
-		torpedo = new Torpedo();
-		torpedo->model.translate(0,-1,0);
-		addChild(torpedo);
+		payload = new Payload();
+		payload->model.translate(0,-1,0);
+		addChild(payload);
 		break;
 	}
 	
@@ -198,7 +198,7 @@ void Airplane::checkIA(float dt) //BLOQUE IA
 		goToTarget(dt, target);
 	}
 	else {
-		torpedo ? goToTarget(dt, target) : goToTarget(dt, finish);
+		payload ? goToTarget(dt, target) : goToTarget(dt, finish);
 		if (targetReached(target)) bomb();		
 		if (targetReached(finish)) {
 			cout << "Finish Reached" << endl;
@@ -273,18 +273,18 @@ bool Airplane::targetReached(Entity* t) {
 
 void Airplane::bomb()
 {
-	if (!torpedo) {
+	if (!payload) {
 		return;
 	}
-	torpedo->time_of_life = 10;
-	torpedo->is_on = true;
+	payload->time_of_life = 10;
+	payload->is_on = true;
 		
-	Matrix44 glob = torpedo->getGlobalMatrix();
-	this->removeChild(torpedo);
-	World::root->addChild(torpedo);
-	torpedo->model = glob;
-	this->torpedo = NULL;
-	cout << "Torpedo fired" << endl;
+	Matrix44 glob = payload->getGlobalMatrix();
+	this->removeChild(payload);
+	World::root->addChild(payload);
+	payload->model = glob;
+	this->payload = NULL;
+	cout << "Payload fired" << endl;
 }
 
 void Airplane::shootGun()
@@ -371,10 +371,10 @@ void Sea::update(float dt)
 	this->model.setTranslation(Camera::current->eye.x, 0, Camera::current->eye.z);
 }
 
-Torpedo::Torpedo() : EntityMesh()
+Payload::Payload() : EntityMesh()
 {
-	mesh_name = "data/assets/torpedo/torpedo.ASE";
-	texture_name = "data/assets/torpedo/torpedo.tga";
+	mesh_name = "data/assets/torpedo/bomb.ASE";
+	texture_name = "data/assets/torpedo/bomb.tga";
 	texture = Texture::Load(texture_name.c_str());
 	mesh = Mesh::Load(mesh_name.c_str());
 	speed = 0.15;
@@ -382,7 +382,7 @@ Torpedo::Torpedo() : EntityMesh()
 	is_on = false;
 }
 
-void Torpedo::update(float dt)
+void Payload::update(float dt)
 {
 	if (is_on && time_of_life > 0) {
 		Matrix44 gl = getGlobalMatrix();

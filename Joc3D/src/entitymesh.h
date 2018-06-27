@@ -45,7 +45,7 @@ public:
 	virtual void update(float dt);
 };
 
-class Torpedo;
+class Payload;
 
 class Airplane : public EntityMesh {
 public:
@@ -53,7 +53,7 @@ public:
 	float speed;
 	float dirSpeed;
 	bool is_player;
-	Torpedo* torpedo;
+	Payload* payload;
 	int health;
 	bool isAlive;
 	bool crashed;
@@ -89,12 +89,12 @@ struct Route {
 	Entity* finish;
 };
 
-class Torpedo : public EntityMesh {
+class Payload : public EntityMesh {
 public:
 	float speed;
 	float time_of_life;
 	bool is_on;
-	Torpedo();
+	Payload();
 	void update(float dt);
 };
 
