@@ -65,7 +65,7 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 	case RAF_FIGHTER:
 		mesh_name = "data/assets/spitfire/spitfire.ASE";
 		texture_name = "data/assets/spitfire/spitfire_color_spec.tga";
-		speed = 40;
+		speed = 55;
 		dirSpeed = 2;
 		health = 600;
 		isAlive = true;
@@ -83,7 +83,7 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		planes.push_back(this);
 		mesh_name = "data/assets/bomber/bomber_axis.ASE";
 		texture_name = "data/assets/bomber/bomber_axis.tga";
-		speed = 40;
+		speed = 50;
 		dirSpeed = 1;
 		health = 50;
 		shootTimer = 0;
@@ -92,11 +92,11 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		isAlive = true;
 		crashed = false;
 		target = new Entity();
-		target->model.translate(1800.0, 650, 2400.0);
+		target->model.translate(1900.0, 500, 2000.0);
 		float rx = rand() % 2000 - 1000;
 		float ry = rand() % 2000 - 1000;
 		finish = new Entity();
-		finish->model.translate(target->getGlobalMatrix().getTranslation().x + (target->getGlobalMatrix().getTranslation().x - mod.x)*2 + rx, 1000, target->getGlobalMatrix().getTranslation().z + (target->getGlobalMatrix().getTranslation().z - mod.z) * 2 + ry);
+		finish->model.translate(target->getGlobalMatrix().getTranslation().x + (target->getGlobalMatrix().getTranslation().x - mod.x)*2 + rx, 2000, target->getGlobalMatrix().getTranslation().z + (target->getGlobalMatrix().getTranslation().z - mod.z) * 2 + ry);
 		torpedo = new Torpedo();
 		torpedo->model.translate(0,-1,0);
 		addChild(torpedo);
@@ -315,7 +315,7 @@ void Airplane::renderPlaneFinder()
 		}		
 	}
 	glColor4f(0.65, 0, 0, 1);
-	glPointSize(8);
+	glPointSize(10);
 	if (m.vertices.size() > 0) {
 		m.renderFixedPipeline(GL_POINTS);
 	}
@@ -385,8 +385,16 @@ Torpedo::Torpedo() : EntityMesh()
 void Torpedo::update(float dt)
 {
 	if (is_on && time_of_life > 0) {
-		model.translate(0, -dt * 100, 0);
-		time_of_life -= dt;
+		Matrix44 gl = getGlobalMatrix();
+		gl.translate(0, -dt * 50, 0);
+		model.setTranslation(gl.getTranslation().x, gl.getTranslation().y, gl.getTranslation().z);
+
+		if (this->getGlobalMatrix().getTranslation().y < 0) {
+			Game::instance->carrierHealth -= 250;
+			cout << "Carier Hit" << endl;
+			time_of_life = 0;
+		}
+
 	}
 }
 
@@ -397,11 +405,14 @@ Carrier::Carrier() : EntityMesh()
 	texture = Texture::Load(texture_name.c_str());
 	mesh = Mesh::Load(mesh_name.c_str());
 	model.translate(1900, 0, 2000);
+	health = 5000;
 }
 
 void Carrier::update(float dt)
 {
-	
+	if (Game::instance->carrierHealth <= 0) {
+		Game::instance->state = END;
+	}
 }
 
 BulletManager::BulletManager()

@@ -27,6 +27,7 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 
 	state = MENU;
 	enemyPlanesDestroyed = 0;
+	carrierHealth = 5000;
 	glClearColor(0, 0, 0, 1);
 
 	fps = 0;
@@ -149,19 +150,25 @@ void Game::renderGameplay() {
 	stringstream ss1;
 	ss1 << "Ammo: ";
 	ss1 << a;
-	string ammostr = ss1.str();
+	string ammoStr = ss1.str();
 
 	stringstream ss2;
 	ss2 << "Planes shot down: ";
 	ss2 << enemyPlanesDestroyed;
-	string planesstr = ss2.str();
+	string planesStr = ss2.str();
+
+	stringstream ss3;
+	ss3 << "Carrier Health: ";
+	ss3 << carrierHealth;
+	string carrierStr = ss3.str();
 
 	
 
 	//render the FPS
 	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
-	drawText(575, 2, ammostr, Vector3(1, 1, 1), 2);
-	drawText(750, 2, planesstr, Vector3(1, 1, 1), 2);
+	drawText(575, 2, ammoStr, Vector3(1, 1, 1), 2);
+	drawText(750, 2, planesStr, Vector3(1, 1, 1), 2);
+	drawText(750, 25, carrierStr, Vector3(1, 1, 1), 2);
 
 	//swap between front buffer and back buffer
 	SDL_GL_SwapWindow(this->window);
@@ -247,6 +254,7 @@ void Game::update(double seconds_elapsed) {
 void Game::updateMenu() {
 	if (Input::wasKeyPressed(SDL_SCANCODE_G)) {
 		world = new World();
+		enemyPlanesDestroyed = 0;
 		state = GAME;
 	}
 }
@@ -255,6 +263,9 @@ void Game::updateGameplay(double seconds_elapsed)
 {
 	if (Input::wasKeyPressed(SDL_SCANCODE_M)) {
 		state = PAUSE;
+	}
+	if (Input::wasKeyPressed(SDL_SCANCODE_Z)) {
+		state = END;
 	}
 
 	world->update(seconds_elapsed);

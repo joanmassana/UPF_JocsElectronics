@@ -36,6 +36,7 @@ public:
 
 	GameState state;
 	int enemyPlanesDestroyed;
+	int carrierHealth;
 
 	//some vars
 	Camera* cameraPlayer; //our global camera

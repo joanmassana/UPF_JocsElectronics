@@ -14,9 +14,11 @@ class EntityMesh;
 using namespace std;
 
 Entity* World::root = NULL;
+World* World::instance = NULL;
 
 World::World()
 {
+	instance = this;
 	round = 1;
 	//Root
 	root = new Entity();
@@ -55,6 +57,7 @@ World::~World()
 	delete sky;
 	delete player;
 	planes.clear();
+	Airplane::planes.clear();
 }
 
 void World::render(float dt)
@@ -200,7 +203,7 @@ void World::checkIfRoundEnded() {
 	}
 	else {
 		this->round++;
-		player->ammo += player->ammo / 2;
+		player->ammo = 1000 - player->ammo / 4;
 	}	
 	
 	float rx = rand() % 5000 - 2500;
