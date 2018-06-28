@@ -48,10 +48,7 @@ void EntityMesh::render()
 		for (int i = 0; i < children.size(); i++) {
 			children[i]->render();
 		}
-
-
 	}
-
 }
 
 void EntityMesh::update(float dt)
@@ -67,7 +64,7 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		texture_name = "data/assets/spitfire/spitfire_color_spec.tga";
 		speed = 55;
 		dirSpeed = 2;
-		health = 600;
+		health = 200;
 		isAlive = true;
 		crashed = false;
 		canShoot = true;
@@ -86,8 +83,9 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		speed = 50;
 		dirSpeed = 1;
 		health = 50;
+		canShoot = true;
 		shootTimer = 0;
-		rate_of_fire = 2;
+		rate_of_fire = 1.75;
 		ammo = 1000;
 		isAlive = true;
 		crashed = false;
@@ -96,7 +94,7 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		float rx = rand() % 2000 - 1000;
 		float ry = rand() % 2000 - 1000;
 		finish = new Entity();
-		finish->model.translate(target->getGlobalMatrix().getTranslation().x + (target->getGlobalMatrix().getTranslation().x - mod.x)*2 + rx, 2000, target->getGlobalMatrix().getTranslation().z + (target->getGlobalMatrix().getTranslation().z - mod.z) * 2 + ry);
+		finish->model.translate(target->getGlobalMatrix().getTranslation().x + (target->getGlobalMatrix().getTranslation().x - mod.x)*0.75 + rx, 2000, target->getGlobalMatrix().getTranslation().z + (target->getGlobalMatrix().getTranslation().z - mod.z) * 0.75 + ry);
 		payload = new Payload();
 		payload->model.translate(0,-1,0);
 		addChild(payload);
@@ -134,7 +132,7 @@ void Airplane::update(float dt)
 	model.translate(0, 0, -speed * dt);
 
 	if (is_player) {	//Camara se mueve con el avión
-		if (!isAlive) {
+		if (!isAlive || health < 0) {
 			Game::instance->state = END;
 		}
 		
@@ -161,15 +159,34 @@ void Airplane::checkInput(float dt)
 	//Controles
 	if (Input::isKeyPressed(SDL_SCANCODE_LSHIFT)) speed *= 10; //move faster with left shift
 
+	//Movimiento lateral - Timon de cola
 	if (Input::isKeyPressed(SDL_SCANCODE_E)) this->model.rotate(dt * dirSpeed / 5, Vector3(0.0f, 1.0f, 0.0f));
+	if (Input::gamepads[0].axis[TRIGGERS] < -0.2) this->model.rotate(dt * dirSpeed / 2 * Input::gamepads[0].axis[TRIGGERS], Vector3(0.0f, 1.0f, 0.0f));
+
 	if (Input::isKeyPressed(SDL_SCANCODE_Q)) this->model.rotate(dt * dirSpeed / 5, Vector3(0.0f, -1.0f, 0.0f));
+	if (Input::gamepads[0].axis[TRIGGERS] > 0.2) this->model.rotate(dt * dirSpeed / 2 * Input::gamepads[0].axis[TRIGGERS], Vector3(0.0f, -1.0f, 0.0f));
+
+	//ARRIBA
 	if (Input::isKeyPressed(SDL_SCANCODE_UP)) this->model.rotate(dt * dirSpeed / 2, Vector3(1.0f, 0.0f, 0.0f));
+	if (Input::gamepads[0].axis[LEFT_ANALOG_Y] > 0.2) this->model.rotate(dt * dirSpeed / 2 * Input::gamepads[0].axis[LEFT_ANALOG_Y], Vector3(1.0f, 0.0f, 0.0f));
+	//ABAJO
 	if (Input::isKeyPressed(SDL_SCANCODE_DOWN)) this->model.rotate(dt * dirSpeed / 2, Vector3(-1.0f, 0.0f, 0.0f));
+	if (Input::gamepads[0].axis[LEFT_ANALOG_Y] < 0.2) this->model.rotate(dt * dirSpeed / 2 * Input::gamepads[0].axis[LEFT_ANALOG_Y], Vector3(-1.0f, 0.0f, 0.0f));
+	//IZQ
 	if (Input::isKeyPressed(SDL_SCANCODE_LEFT)) this->model.rotate(dt * dirSpeed / 2, Vector3(0.0f, 0.0f, -1.0f));
+	if (Input::gamepads[0].axis[LEFT_ANALOG_X] < 0.2) this->model.rotate(dt * dirSpeed / 2 * Input::gamepads[0].axis[LEFT_ANALOG_Y], Vector3(0.0f, 0.0f, -1.0f));
+	//DER
 	if (Input::isKeyPressed(SDL_SCANCODE_RIGHT)) this->model.rotate(dt * dirSpeed / 2, Vector3(0.0f, 0.0f, 1.0f));
+	if (Input::gamepads[0].axis[LEFT_ANALOG_X] > 0.2) this->model.rotate(dt * dirSpeed / 2 * Input::gamepads[0].axis[LEFT_ANALOG_Y], Vector3(0.0f, 0.0f, 1.0f));
+	//Acelerar
 	if (Input::isKeyPressed(SDL_SCANCODE_P)) this->speed += 20 * dt;
+	if(Input::gamepads[0].button[A_BUTTON]) this->speed += 20 * dt;
+	//Frenar
 	if (Input::isKeyPressed(SDL_SCANCODE_O)) this->speed -= 20 * dt;
-	if (Input::isKeyPressed(SDL_SCANCODE_SPACE)) {
+	if (Input::gamepads[0].button[X_BUTTON]) this->speed -= 20 * dt;
+
+	//Disparar
+	if (Input::isKeyPressed(SDL_SCANCODE_SPACE) || (Input::gamepads[0].axis[TRIGGERS] > 0.4)) {		//Trigger derecho
 		if (canShoot) {
 			this->shootGun_player();
 			canShoot = false;
@@ -182,12 +199,14 @@ void Airplane::checkInput(float dt)
 			}
 		}
 	}
-	if (Input::isKeyPressed(SDL_SCANCODE_B)) this->bomb();
-	if (Input::isKeyPressed(SDL_SCANCODE_1)) {
+
+
+	//Camaras
+	if (Input::isKeyPressed(SDL_SCANCODE_1) || Input::gamepads[0].button[PAD_DOWN]) {
 		Game::instance->cameraCurrent = Game::instance->cameraFront;
-	}	else if(Input::isKeyPressed(SDL_SCANCODE_2)){
+	}	else if(Input::isKeyPressed(SDL_SCANCODE_2) || Input::gamepads[0].button[PAD_LEFT]){
 		Game::instance->cameraCurrent = Game::instance->cameraLeft;
-	}	else if (Input::isKeyPressed(SDL_SCANCODE_3)) {
+	}	else if (Input::isKeyPressed(SDL_SCANCODE_3) || Input::gamepads[0].button[PAD_RIGHT]) {
 		Game::instance->cameraCurrent = Game::instance->cameraRight;
 	}	else {
 		Game::instance->cameraCurrent = Game::instance->cameraPlayer;
@@ -210,7 +229,17 @@ void Airplane::checkIA(float dt) //BLOQUE IA
 		
 	}	
 	if ((World::instance->player->getGlobalMatrix().getTranslation()-this->getGlobalMatrix().getTranslation()).length() < 500 && isAlive) {
-		shootGun_enemy();
+		if (canShoot) {
+			this->shootGun_enemy();
+			this->canShoot = false;
+			this->shootTimer = 0;
+		}
+		else {
+			this->shootTimer += dt;
+			if (this->shootTimer > (1 / this->rate_of_fire) && this->ammo > 0) {
+				this->canShoot = true;
+			}
+		}
 	}
 	return;
 }
@@ -297,8 +326,8 @@ void Airplane::shootGun_player()
 	Vector3 pos_right = getGlobalMatrix() * Vector3(1.9,0,-1.9);
 	Vector3 pos_left = getGlobalMatrix() * Vector3(-1.9, 0, -1.9);
 	Vector3 vel = getGlobalMatrix().rotateVector(Vector3(0,0,-500));
-	BulletManager::instance.createBullet(pos_right,vel, 0, this, 10);
-	BulletManager::instance.createBullet(pos_left, vel, 0, this, 10);
+	BulletManager::instance.createBullet(pos_right,vel, 0, this, 10, 15);
+	BulletManager::instance.createBullet(pos_left, vel, 0, this, 10, 15);
 	this->ammo--;
 	
 	//Audio	
@@ -313,11 +342,10 @@ void Airplane::shootGun_enemy()
 	float ry = rand() % 20 - 10;
 	float rz = rand() % 20 - 10;
 	Vector3 ran = Vector3(rx, ry, rz);
-	Vector3 dir = (World::instance->player->getGlobalMatrix() * World::instance->player->mesh->box.center) - this->getGlobalMatrix().getTranslation();
-	cout << dir.x << ", " << dir.y << ", " << dir.z << endl;
+	Vector3 dir = ((World::instance->player->getGlobalMatrix() * World::instance->player->mesh->box.center) + ran) - this->getGlobalMatrix().getTranslation();
 	dir.normalize();
-	Vector3 vel = getGlobalMatrix().rotateVector(dir*500);
-	BulletManager::instance.createBullet(pos, vel, 0, this, 10);
+	Vector3 vel = dir*500;
+	BulletManager::instance.createBullet(pos, vel, 0, this, 10, 10);
 
 	//Audio	
 	BASS_ChannelSetAttribute(this->hSampleChannel, BASS_ATTRIB_VOL, 0.1);
@@ -443,7 +471,7 @@ BulletManager::BulletManager()
 	memset(&bullets, 0, sizeof(bullets));
 }
 
-void BulletManager::createBullet(Vector3 pos, Vector3 vel, char type, Airplane* author, float ttl)
+void BulletManager::createBullet(Vector3 pos, Vector3 vel, char type, Airplane* author, float ttl, float damage)
 {
 	Bullet b;
 	b.position = pos;
@@ -451,7 +479,7 @@ void BulletManager::createBullet(Vector3 pos, Vector3 vel, char type, Airplane* 
 	b.type = type;
 	b.author = author;
 	b.ttl = 2;
-	b.damage = 15;
+	b.damage = damage;
 
 	for (int i = 0; i < max_bullets; i++) {
 		Bullet& bullet = bullets[i];

@@ -144,7 +144,7 @@ public:
 	static BulletManager instance;
 
 	BulletManager();
-	void createBullet(Vector3 pos, Vector3 vel, char type, Airplane* author, float ttl);
+	void createBullet(Vector3 pos, Vector3 vel, char type, Airplane* author, float ttl, float damage);
 
 	void render();
 	void update(float dt);

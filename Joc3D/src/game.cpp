@@ -86,6 +86,9 @@ void Game::render()
 	case MENU:
 		renderMenu();
 		break;
+	case HELP:
+		renderHelp();
+		break;
 	case GAME:
 		renderGameplay();
 		renderGUI();
@@ -110,22 +113,28 @@ void Game::renderMenu() {
 
 	drawText(450, 450, "MENU", Vector3(1, 1, 1), 2);
 
-	Mesh* m = new Mesh();
-	m->createQuad(100, 100, 50, 50, false);
-	menuImage = new EntityMesh();
-	menuImage->mesh = m;
-
-	Shader* shader = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
-	shader->enable();
-	shader->setTexture("u_texture", Texture::Load("data/assets/gui/crosshair.tga"));
-	shader->setUniform4("u_color", Vector4(1, 1, 0, 1));
-	menuImage->mesh->render(GL_TRIANGLES, shader);
-	shader->disable();
+	
 
 	//swap between front buffer and back buffer
 	SDL_GL_SwapWindow(this->window);	
 	
 }
+void Game::renderHelp() {
+	//set the clear color (the background color)
+	glClearColor(50.0 / 255.0, 50.0 / 255.0, 50.0 / 255.0, 1.0);
+
+	// Clear the window and the depth buffer
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	drawText(450, 450, "HELP", Vector3(1, 1, 1), 2);
+
+
+
+	//swap between front buffer and back buffer
+	SDL_GL_SwapWindow(this->window);
+
+}
+
 
 void Game::renderGameplay() {
 
@@ -162,50 +171,43 @@ void Game::renderGameplay() {
 	ss3 << carrierHealth;
 	string carrierStr = ss3.str();
 
-	
+	stringstream ss4;
+	ss4 << "ROUND ";
+	ss4 << world->round;
+	string roundStr = ss4.str();
+
+	stringstream ss5;
+	ss5 << "Health ";
+	ss5 << world->player->health;
+	string healthStr = ss5.str();
 
 	//render the FPS
-	drawText(2, 2, getGPUStats(), Vector3(1, 1, 1), 2);
-	drawText(575, 2, ammoStr, Vector3(1, 1, 1), 2);
-	drawText(750, 2, planesStr, Vector3(1, 1, 1), 2);
-	drawText(750, 25, carrierStr, Vector3(1, 1, 1), 2);
+	drawText(2, 2, roundStr, Vector3(1, 1, 1), 2);
+	drawText(150, 2, healthStr, Vector3(1, 1, 1), 2);
+	drawText(300, 2, ammoStr, Vector3(1, 1, 1), 2);
+	drawText(500, 2, planesStr, Vector3(1, 1, 1), 2);
+	drawText(800, 2, carrierStr, Vector3(1, 1, 1), 2);
+
+	//drawText(2, 25, getGPUStats(), Vector3(1, 1, 1), 2);
 
 	//swap between front buffer and back buffer
 	SDL_GL_SwapWindow(this->window);
 
-	//renderGUI();
-	
+	//renderGUI();	
 }
+
+
 
 void Game::renderGUI() {
 
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	/*Mesh* m = new Mesh();
+	m->createQuad(100, 100, 50, 50, false);
+	m->registerMesh("menu_mesh");
 
-	Mesh quad;
-
-	quad.vertices.push_back(Vector3(0, 0, 0));
-	quad.uvs.push_back(Vector2(0, 0));
-	quad.vertices.push_back(Vector3(1, 0, 0));
-	quad.uvs.push_back(Vector2(1, 0));
-	quad.vertices.push_back(Vector3(0, 1, 0));
-	quad.uvs.push_back(Vector2(0, 1));
-
-	quad.vertices.push_back(Vector3(1, 0, 0));
-	quad.uvs.push_back(Vector2(1, 0));
-	quad.vertices.push_back(Vector3(0, 1, 0));
-	quad.uvs.push_back(Vector2(0, 1));
-	quad.vertices.push_back(Vector3(1, 1, 0));
-	quad.uvs.push_back(Vector2(1, 1));
-
-	Shader* shader = Shader::Load("data/shaders/gui.vs", "data/shaders/gui.fs");
-	shader->enable();
-	shader->setTexture("u_texture", Texture::Load("data/assets/gui/crosshair.tga"));
-	shader->setUniform4("u_color", Vector4(1, 1, 0, 1));
-	quad.render(GL_TRIANGLES, shader);
-	shader->disable();
+	menuImage = new EntityMesh();
+	menuImage->mesh_name = "menu_mesh";
+	menuImage->texture = Texture::Load("data/assets/gui/crosshair.tga");
+	menuImage->render();*/
 
 }
 
@@ -237,6 +239,9 @@ void Game::update(double seconds_elapsed) {
 	case MENU:
 		updateMenu();
 		break;
+	case HELP:
+		updateHelp();
+		break;
 	case GAME:
 		updateGameplay(seconds_elapsed);
 		break;
@@ -255,6 +260,12 @@ void Game::updateMenu() {
 	if (Input::wasKeyPressed(SDL_SCANCODE_G)) {
 		world = new World();
 		enemyPlanesDestroyed = 0;
+		state = HELP;
+	}
+}
+
+void Game::updateHelp() {
+	if (Input::wasKeyPressed(SDL_SCANCODE_G) || Input::wasKeyPressed(SDL_SCANCODE_TAB)) {
 		state = GAME;
 	}
 }
@@ -263,6 +274,9 @@ void Game::updateGameplay(double seconds_elapsed)
 {
 	if (Input::wasKeyPressed(SDL_SCANCODE_M)) {
 		state = PAUSE;
+	}
+	if (Input::wasKeyPressed(SDL_SCANCODE_TAB)) {
+		state = HELP;
 	}
 	if (Input::wasKeyPressed(SDL_SCANCODE_Z)) {
 		state = END;

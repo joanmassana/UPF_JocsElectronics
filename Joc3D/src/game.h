@@ -12,7 +12,7 @@
 class Entity;
 class EntityMesh;
 
-enum GameState { MENU, GAME, PAUSE, END };
+enum GameState { MENU, HELP, GAME, PAUSE, END };
 
 class Game
 {
@@ -55,6 +55,7 @@ public:
 	//main functions
 	void render();
 	void renderMenu();
+	void renderHelp();
 	void renderGameplay();
 	void renderGUI();
 	void renderPause();
@@ -62,6 +63,7 @@ public:
 
 	void update( double dt );
 	void updateMenu();
+	void updateHelp();
 	void updateGameplay(double dt);
 	void updatePause();
 	void updateEndScreen();

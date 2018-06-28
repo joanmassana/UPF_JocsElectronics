@@ -102,6 +102,7 @@ void Input::updateGamepadState(SDL_Joystick* joystick, GamepadState& state)
 	memcpy(state.prev_button, prev_button, 16); //copy prev buttons state
 
 	Vector2 axis_direction(state.axis[LEFT_ANALOG_X], state.axis[LEFT_ANALOG_Y]);
+
 	state.prev_direction = prev_direction;
 	state.direction = 0;
 	float limit = 0.6;

@@ -38,10 +38,10 @@ World::World()
 	this->player = new Airplane(RAF_FIGHTER, Vector3(0, 0, 0), true);
 
 	//enemigos
-	float rx = rand() % 5000 - 2500;
-	float rz = rand() % 5000 - 2500;
+	float rx = rand() % 7000 - 3500;
+	float rz = rand() % 7000 - 3500;
 	for (int i = 0; i < planesPerRound[round - 1]; i++) {
-		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(1500 + i * 50 + rx, 600, 2000 + i * 100 + rz), false);
+		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(1900 + i * 50 + rx, 600, 2000 + i * 100 + rz), false);
 		planes.push_back(airplane);
 	}
 
@@ -95,7 +95,6 @@ void World::update(float dt)
 	player->update(dt);
 
 	checkIfRoundEnded();
-
 
 	Vector3 front = player->getGlobalMatrix().rotateVector(Vector3(0, 0, -1));
 	front.normalize();
@@ -207,10 +206,10 @@ void World::checkIfRoundEnded() {
 		player->ammo = 1000 - player->ammo / 4;
 	}	
 	
-	float rx = rand() % 5000 - 2500;
-	float rz = rand() % 5000 - 2500;
+	float rx = rand() % 7000 - 3500;
+	float rz = rand() % 7000 - 3500;
 	for (int i = 0; i < planesPerRound[round - 1]; i++) {
-		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(1500 + i * 50 + rx, 600, 2000 + i * 100 + rz), false);
+		Airplane* airplane = new Airplane(LUFTWAFFE_BOMBER, Vector3(1900 + i * 50 + rx, 600, 2000 + i * 100 + rz), false);
 		planes.push_back(airplane);
 	}
 	cout << "Round " << round << endl;
