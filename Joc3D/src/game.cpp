@@ -257,7 +257,7 @@ void Game::update(double seconds_elapsed) {
 }
 
 void Game::updateMenu() {
-	if (Input::wasKeyPressed(SDL_SCANCODE_G)) {
+	if (Input::wasKeyPressed(SDL_SCANCODE_G) || (Input::gamepads[0].button[A_BUTTON])) {
 		world = new World();
 		enemyPlanesDestroyed = 0;
 		state = HELP;
@@ -265,17 +265,17 @@ void Game::updateMenu() {
 }
 
 void Game::updateHelp() {
-	if (Input::wasKeyPressed(SDL_SCANCODE_G) || Input::wasKeyPressed(SDL_SCANCODE_TAB)) {
+	if (Input::wasKeyPressed(SDL_SCANCODE_G) || Input::wasKeyPressed(SDL_SCANCODE_TAB) || (Input::gamepads[0].button[A_BUTTON]) || (Input::gamepads[0].button[Y_BUTTON])) {
 		state = GAME;
 	}
 }
 
 void Game::updateGameplay(double seconds_elapsed)
 {
-	if (Input::wasKeyPressed(SDL_SCANCODE_M)) {
+	if (Input::wasKeyPressed(SDL_SCANCODE_M) || (Input::gamepads[0].button[START_BUTTON])) {
 		state = PAUSE;
 	}
-	if (Input::wasKeyPressed(SDL_SCANCODE_TAB)) {
+	if (Input::wasKeyPressed(SDL_SCANCODE_TAB) || (Input::gamepads[0].button[Y_BUTTON])) {
 		state = HELP;
 	}
 	if (Input::wasKeyPressed(SDL_SCANCODE_Z)) {
@@ -314,14 +314,14 @@ void Game::updateGameplay(double seconds_elapsed)
 
 void Game::updatePause()
 {
-	if (Input::wasKeyPressed(SDL_SCANCODE_M)) {
+	if (Input::wasKeyPressed(SDL_SCANCODE_M) || (Input::gamepads[0].button[A_BUTTON])) {
 		state = GAME;
 	}
 }
 
 void Game::updateEndScreen() {
 	
-	if (Input::wasKeyPressed(SDL_SCANCODE_G)) {
+	if (Input::wasKeyPressed(SDL_SCANCODE_G) || (Input::gamepads[0].button[A_BUTTON])) {
 		delete world;
 		state = MENU;
 	}
