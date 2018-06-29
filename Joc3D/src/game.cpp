@@ -112,7 +112,7 @@ void Game::renderMenu() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	drawText(150, 150, "FIGHTER COMMAND", Vector3(1, 1, 1), 8);
-	drawText(200, 450, "Press G to continue", Vector3(1, 1, 1), 3);
+	drawText(350, 650, "Press G to continue", Vector3(1, 1, 1), 3);
 
 	
 	/*Mesh* m = new Mesh();
@@ -143,8 +143,15 @@ void Game::renderHelp() {
 	// Clear the window and the depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	drawText(450, 450, "HELP", Vector3(1, 1, 1), 2);
-
+	drawText(200, 100, "HOW TO PLAY", Vector3(1, 1, 1), 10);
+	drawText(200, 250, "Keyboard", Vector3(1, 1, 1), 6);
+	drawText(200, 350, "UP, DOWN, LEFT, RIGHT to control plane", Vector3(1, 1, 1), 2);
+	drawText(200, 400, "Q and E to control rudder", Vector3(1, 1, 1), 2);
+	drawText(200, 450, "SPACE to fire", Vector3(1, 1, 1), 2);
+	drawText(200, 500, "1, 2, 3 to look back, left, and right", Vector3(1, 1, 1), 2);
+	drawText(200, 550, "TAB for help", Vector3(1, 1, 1), 2);
+	drawText(200, 600, "0 to accelerate, 9 to slow down", Vector3(1, 1, 1), 2);
+	drawText(200, 650, "P for pause", Vector3(1, 1, 1), 2);
 
 
 	//swap between front buffer and back buffer
@@ -230,7 +237,8 @@ void Game::renderGUI() {
 
 void Game::renderPause()
 {
-	drawText(450, 450, "PAUSE", Vector3(1, 1, 1), 2);
+	drawText(350, 150, "PAUSE", Vector3(1, 1, 1), 10);
+	drawText(350, 650, "Press G or P to continue", Vector3(1, 1, 1), 3);
 	//swap between front buffer and back buffer
 	SDL_GL_SwapWindow(this->window);
 }
@@ -239,14 +247,17 @@ void Game::renderEndScreen() {
 	//set the clear color (the background color)
 	glClearColor(50.0 / 255.0, 50.0 / 255.0, 50.0 / 255.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	drawText(450, 400, "GAME OVER", Vector3(1, 1, 1), 2);
+	drawText(250, 150, "GAME OVER", Vector3(1, 1, 1), 10);
+	
+	
 
 	stringstream ss;
 	ss << "Planes shot down: ";
 	ss << enemyPlanesDestroyed;
 	string str = ss.str();
 
-	drawText(450, 475, str, Vector3(1, 1, 1), 2);
+	drawText(325, 400, str, Vector3(1, 1, 1), 3);
+	drawText(350, 650, "Press G to continue", Vector3(1, 1, 1), 3);
 	//swap between front buffer and back buffer
 	SDL_GL_SwapWindow(this->window);
 }
@@ -289,7 +300,7 @@ void Game::updateHelp() {
 
 void Game::updateGameplay(double seconds_elapsed)
 {
-	if (Input::wasKeyPressed(SDL_SCANCODE_M) || (Input::gamepads[0].button[START_BUTTON])) {
+	if (Input::wasKeyPressed(SDL_SCANCODE_P) || (Input::gamepads[0].button[START_BUTTON])) {
 		state = PAUSE;
 	}
 	if (Input::wasKeyPressed(SDL_SCANCODE_TAB) || (Input::gamepads[0].button[Y_BUTTON])) {
@@ -331,7 +342,7 @@ void Game::updateGameplay(double seconds_elapsed)
 
 void Game::updatePause()
 {
-	if (Input::wasKeyPressed(SDL_SCANCODE_M) || (Input::gamepads[0].button[A_BUTTON])) {
+	if (Input::wasKeyPressed(SDL_SCANCODE_P) || Input::wasKeyPressed(SDL_SCANCODE_SPACE) || (Input::gamepads[0].button[A_BUTTON])) {
 		state = GAME;
 	}
 }

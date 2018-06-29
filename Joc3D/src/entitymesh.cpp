@@ -179,11 +179,21 @@ void Airplane::checkInput(float dt)
 	if (Input::isKeyPressed(SDL_SCANCODE_RIGHT)) this->model.rotate(dt * dirSpeed / 2, Vector3(0.0f, 0.0f, 1.0f));
 	if (Input::gamepads[0].axis[LEFT_ANALOG_X] > 0.2) this->model.rotate(dt * dirSpeed / 2 * Input::gamepads[0].axis[LEFT_ANALOG_Y], Vector3(0.0f, 0.0f, 1.0f));
 	//Acelerar
-	if (Input::isKeyPressed(SDL_SCANCODE_P)) this->speed += 20 * dt;
-	if(Input::gamepads[0].button[A_BUTTON]) this->speed += 20 * dt;
+	if (Input::isKeyPressed(SDL_SCANCODE_0)) {
+		if(this->speed < 80) this->speed += 20 * dt;
+		cout << this->speed << endl;
+	}
+	if (Input::gamepads[0].button[A_BUTTON]) {
+		if (this->speed < 80) this->speed += 20 * dt;
+	}
 	//Frenar
-	if (Input::isKeyPressed(SDL_SCANCODE_O)) this->speed -= 20 * dt;
-	if (Input::gamepads[0].button[X_BUTTON]) this->speed -= 20 * dt;
+	if (Input::isKeyPressed(SDL_SCANCODE_9)) {
+		if (this->speed > 40) this->speed -= 20 * dt;
+		cout << this->speed << endl;
+	}
+	if (Input::gamepads[0].button[X_BUTTON]) {
+		if (this->speed > 40) this->speed -= 20 * dt;
+	}
 
 	//Disparar
 	if (Input::isKeyPressed(SDL_SCANCODE_SPACE) || (Input::gamepads[0].axis[TRIGGERS] > 0.4)) {		//Trigger derecho
@@ -228,7 +238,7 @@ void Airplane::checkIA(float dt) //BLOQUE IA
 		}
 		
 	}	
-	if ((World::instance->player->getGlobalMatrix().getTranslation()-this->getGlobalMatrix().getTranslation()).length() < 500 && isAlive) {
+	if ((World::instance->player->getGlobalMatrix().getTranslation()-this->getGlobalMatrix().getTranslation()).length() < 300 && isAlive) {
 		if (canShoot) {
 			this->shootGun_enemy();
 			this->canShoot = false;
@@ -366,7 +376,7 @@ void Airplane::renderPlaneFinder()
 		}		
 	}
 	glColor4f(0.65, 0, 0, 1);
-	glPointSize(10);
+	glPointSize(14);
 	if (m.vertices.size() > 0) {
 		m.renderFixedPipeline(GL_POINTS);
 	}
