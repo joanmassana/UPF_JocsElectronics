@@ -111,9 +111,26 @@ void Game::renderMenu() {
 	// Clear the window and the depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	drawText(450, 450, "MENU", Vector3(1, 1, 1), 2);
+	drawText(150, 150, "FIGHTER COMMAND", Vector3(1, 1, 1), 8);
+	drawText(200, 450, "Press G to continue", Vector3(1, 1, 1), 3);
 
 	
+	/*Mesh* m = new Mesh();
+	m->createQuad(100, 100, 50, 50, false);
+	m->registerMesh("menu_mesh");
+
+	menuImage = new EntityMesh();	
+	menuImage->mesh_name = "menu_mesh";
+	menuImage->texture = Texture::Load("data/assets/cielo/cielo.tga");
+	menuImage->shader = Shader::Load("data/shaders/basic.vs", "data/shaders/texture.fs");
+	menuImage->render();*/
+
+	/*Shader* shader = Shader::Load("data/shaders/basic.vs","data/shaders/gui.fs");
+	shader->enable();
+	shader->setTexture("u_texture", Texture::Load("data/assets/cielo/cielo.tga"));
+	shader->setUniform4("u_color", Vector4(1,1,0,1));
+	menuImage->mesh->render(GL_TRIANGLES, shader);
+	shader->disable();*/
 
 	//swap between front buffer and back buffer
 	SDL_GL_SwapWindow(this->window);	

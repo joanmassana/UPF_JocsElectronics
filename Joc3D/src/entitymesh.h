@@ -59,7 +59,7 @@ public:
 	bool crashed;
 	bool canShoot;
 	float shootTimer;
-	int rate_of_fire;
+	float rate_of_fire;
 	int ammo;
 
 	HSAMPLE hSample;

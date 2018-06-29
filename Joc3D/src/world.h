@@ -14,7 +14,7 @@ This class also stores the matrices used to do the transformation and projection
 #include "entity.h"
 #include "entitymesh.h"
 
-const int ROUNDS = 10;
+const int ROUNDS = 14;
 
 using namespace std;
 
@@ -27,7 +27,7 @@ public:
 	static World* instance;
 	//ATTRIBUTES
 	int round;
-	int planesPerRound[ROUNDS] = { 1,1,2,2,2,3,3,3,4,5 };
+	int planesPerRound[ROUNDS] = { 1,1,2,2,2,3,3,3,4,5,6,8,10 };
 	static Entity* root;
 	EntityMesh* terrain;
 	EntityMesh* sky;

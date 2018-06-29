@@ -64,12 +64,12 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		texture_name = "data/assets/spitfire/spitfire_color_spec.tga";
 		speed = 55;
 		dirSpeed = 2;
-		health = 200;
+		health = 500;
 		isAlive = true;
 		crashed = false;
 		canShoot = true;
 		shootTimer = 0;
-		rate_of_fire = 4;
+		rate_of_fire = 25;
 		ammo = 1000;
 		BASS_Init(1, 44100, 0, 0, NULL);
 		hSample = BASS_SampleLoad(false, "data/sounds/gunshot.wav", 0, 0, 1, 0);
@@ -85,7 +85,7 @@ Airplane::Airplane(AircraftType type, Vector3 mod, bool isPlayer) : EntityMesh()
 		health = 50;
 		canShoot = true;
 		shootTimer = 0;
-		rate_of_fire = 1.75;
+		rate_of_fire = 10;
 		ammo = 1000;
 		isAlive = true;
 		crashed = false;
